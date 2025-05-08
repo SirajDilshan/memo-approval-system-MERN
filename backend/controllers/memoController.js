@@ -13,6 +13,8 @@ exports.getAllMemos = async (req, res) => {
 };
 
 
+
+
 // Create Memo (Only CAA of the Department & CAA of the Faculty)
 exports.createMemo = async (req, res) => {
   try {
@@ -39,6 +41,211 @@ exports.createMemo = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+exports.signARCampusMemo = async (req, res) => {
+
+  try {
+    const { memoId } = req.params;
+    const { digitalSignature } = req.body;
+
+    const memo = await Memo.findById(memoId);
+    if (!memo) return res.status(404).json({ message: "Memo not found" });
+
+    // Prevent duplicate signatures by the same user
+    const alreadyApproved = memo.approvals.find(
+      (approval) => approval.approvedBy.toString() === req.user.id.toString()
+    );
+    if (alreadyApproved) {
+      return res.status(400).json({ message: "You have already signed this memo." });
+    }
+
+    // Add a new approval object with a snapshot of the memo at the time of approval
+    memo.approvals.push({
+      role: req.user.role,
+      approvedBy: req.user.id,
+      digitalSignature: digitalSignature,
+      timestamp: Date.now()
+    });
+
+    // Optional: update status
+    if (req.user.role === "AR_Campus") {
+      memo.status = "Approved by AR Campus";
+    }
+
+    memo.updatedAt = Date.now();
+    await memo.save();
+
+    res.json(memo);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.signARMemo = async (req, res) => {
+
+  try {
+    const { memoId } = req.params;
+    const { digitalSignature } = req.body;
+
+    const memo = await Memo.findById(memoId);
+    if (!memo) return res.status(404).json({ message: "Memo not found" });
+
+    // Prevent duplicate signatures by the same user
+    const alreadyApproved = memo.approvals.find(
+      (approval) => approval.approvedBy.toString() === req.user.id.toString()
+    );
+    if (alreadyApproved) {
+      return res.status(400).json({ message: "You have already signed this memo." });
+    }
+
+    // Add a new approval object with a snapshot of the memo at the time of approval
+    memo.approvals.push({
+      role: req.user.role,
+      approvedBy: req.user.id,
+      digitalSignature: digitalSignature,
+      timestamp: Date.now()
+    });
+
+    // Optional: update status
+    if (req.user.role === "AR_Faculty") {
+      memo.status = "Approved by AR";
+    }
+
+    memo.updatedAt = Date.now();
+    await memo.save();
+
+    res.json(memo);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.signDeanMemo = async (req, res) => {
+  try {
+    const { memoId } = req.params;
+    const { digitalSignature, title, content } = req.body;
+
+    const memo = await Memo.findById(memoId);
+    if (!memo) return res.status(404).json({ message: "Memo not found" });
+
+    // Prevent duplicate signatures by the same user
+    const alreadyApproved = memo.approvals.find(
+      (approval) => approval.approvedBy.toString() === req.user.id.toString()
+    );
+    if (alreadyApproved) {
+      return res.status(400).json({ message: "You have already signed this memo." });
+    }
+
+    // Add a new approval object with a snapshot of the memo at the time of approval
+    memo.approvals.push({
+      role: req.user.role,
+      approvedBy: req.user.id,
+      digitalSignature: digitalSignature,
+      title: title || memo.title,
+      content: content || memo.content,
+      timestamp: Date.now()
+    });
+
+    // Optional: update status
+    if (req.user.role === "Dean_Faculty") {
+      memo.status = "Approved by Dean";
+    }
+
+    memo.updatedAt = Date.now();
+    await memo.save();
+
+    res.json(memo);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+exports.signMemoAR = async (req, res) => {
+  try {
+    const { memoId } = req.params;
+    const { digitalSignature, title, content } = req.body;
+
+    const memo = await Memo.findById(memoId);
+    if (!memo) return res.status(404).json({ message: "Memo not found" });
+
+    // Prevent duplicate signatures by the same user
+    const alreadyApproved = memo.approvals.find(
+      (approval) => approval.approvedBy.toString() === req.user.id.toString()
+    );
+    if (alreadyApproved) {
+      return res.status(400).json({ message: "You have already signed this memo." });
+    }
+
+    // Add a new approval object with a snapshot of the memo at the time of approval
+    memo.approvals.push({
+      role: req.user.role,
+      approvedBy: req.user.id,
+      digitalSignature: digitalSignature,
+      title: title || memo.title,
+      content: content || memo.content,
+      timestamp: Date.now()
+    });
+
+    // Optional: update status
+    if (req.user.role === "AR_Faculty") {
+      memo.status = "Approved by Faculty AR";
+    }
+
+    memo.updatedAt = Date.now();
+    await memo.save();
+
+    res.json(memo);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
+// Sign Memo (store digital signature along with title/content snapshot)
+exports.signMemo = async (req, res) => {
+  try {
+    const { memoId } = req.params;
+    const { digitalSignature, title, content } = req.body;
+
+    const memo = await Memo.findById(memoId);
+    if (!memo) return res.status(404).json({ message: "Memo not found" });
+
+    // Prevent duplicate signatures by the same user
+    const alreadyApproved = memo.approvals.find(
+      (approval) => approval.approvedBy.toString() === req.user.id.toString()
+    );
+    if (alreadyApproved) {
+      return res.status(400).json({ message: "You have already signed this memo." });
+    }
+
+    // Add a new approval object with a snapshot of the memo at the time of approval
+    memo.approvals.push({
+      role: req.user.role,
+      approvedBy: req.user.id,
+      digitalSignature: digitalSignature,
+      title: title || memo.title,
+      content: content || memo.content,
+      timestamp: Date.now()
+    });
+
+    // Optional: update status
+    if (req.user.role === "Head_Department") {
+      memo.status = "Approved by Head";
+    }
+
+    memo.updatedAt = Date.now();
+    await memo.save();
+
+    res.json(memo);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
+
 
 // Edit Memo (Only the creator can edit)
 exports.editMemo = async (req, res) => {
@@ -150,21 +357,19 @@ exports.approveByCampusAR = (req, res) => approveMemo(req, res, "AR_Campus", "Ap
 exports.facultyBoardDecision = async (req, res) => {
   try {
     const { memoId } = req.params;
-    const { decision, signature } = req.body;
+    const { decision } = req.body;
 
     if (!["Accepted", "Rejected"].includes(decision)) {
       return res.status(400).json({ message: "Invalid decision. Must be 'Accepted' or 'Rejected'." });
     }
 
-    if (!signature) {
-      return res.status(400).json({ message: "Signature is required for decision." });
-    }
-
     const memo = await Memo.findById(memoId);
     if (!memo) return res.status(404).json({ message: "Memo not found" });
 
+
     memo.status = "Faculty Board Decision: " + decision;
-    memo.facultyBoardDecision = { decision, signature };
+    memo.facultyBoardDecision = decision;
+  
     await memo.save();
 
     res.json(memo);
@@ -177,21 +382,17 @@ exports.facultyBoardDecision = async (req, res) => {
 exports.campusBoardDecision = async (req, res) => {
   try {
     const { memoId } = req.params;
-    const { decision, signature } = req.body;
+    const { decision} = req.body;
 
     if (!["Accepted", "Rejected"].includes(decision)) {
       return res.status(400).json({ message: "Invalid decision. Must be 'Accepted' or 'Rejected'." });
-    }
-
-    if (!signature) {
-      return res.status(400).json({ message: "Signature is required for decision." });
     }
 
     const memo = await Memo.findById(memoId);
     if (!memo) return res.status(404).json({ message: "Memo not found" });
 
     memo.status = "Campus Board Decision: " + decision;
-    memo.campusBoardDecision = { decision, signature };
+    memo.campusBoardDecision =  decision ;
     await memo.save();
 
     res.json(memo);

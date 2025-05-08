@@ -10,7 +10,7 @@ const generateToken = (user) => {
   return jwt.sign(
     { id: user._id, role: user.role }, // Include role in token
     process.env.JWT_SECRET,
-    { expiresIn: "1h" } // Token expires in 1 hour
+    { expiresIn: "3h" } // Token expires in 1 hour
   );
 };
 
@@ -60,9 +60,11 @@ exports.login = async (req, res) => {
       { expiresIn: "1h" }
     );
 
+    const role = user.role;
+
     res.cookie("token", token, { httpOnly: true });
 
-    res.json({ message: "Login successful", token });
+    res.json({ message: "Login successful", token , role});
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ message: "Server Error" });

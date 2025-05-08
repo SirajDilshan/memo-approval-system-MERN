@@ -7,6 +7,8 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
 const { setIO } = require("./socket"); // ✅ import setIO
+const notificationRoutes = require('./routes/NotificationRoutes');
+
 
 dotenv.config();
 const app = express();
@@ -33,6 +35,8 @@ mongoose
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/memos", require("./routes/memoRoutes"));
+app.use('/api/notifications', notificationRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("UMIS Backend Running");

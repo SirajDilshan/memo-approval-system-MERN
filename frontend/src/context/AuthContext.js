@@ -1,53 +1,59 @@
-import { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [currentUser, setCurrentUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [currentUser, setCurrentUser] = useState(() => sessionStorage.getItem('role'));
+  
   const navigate = useNavigate();
+  const [activeView, setActiveView] = useState('dashboard');
+  const [memos, setMemos] = useState([]);
+  const [viewId, setViewId] = useState();
+  const [caaNotifications, setCaaNotifications ] = useState([]);
+  const [headNotifications, setHeadNotifications ] = useState([]);
+  const [signatureDataURL, setSignatureDataURL] = useState();
+
+const [notificationCount, setNotificationCount] = useState();
 
   const isAuthenticated = () => currentUser !== null;
 
-  const login = async (credentials) => {
-    setLoading(true);
-    try {
-      const mockUser = {
-        id: 1,
-        username: credentials.username,
-        email: credentials.username + '@example.com',
-        role: credentials.role || 'CAA_Department'
-      };
-      await new Promise(resolve => setTimeout(resolve, 500));
-      setCurrentUser(mockUser);
-      localStorage.setItem('currentUser', JSON.stringify(mockUser));
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Login error:', error);
-      throw error;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const logout = () => {
     setCurrentUser(null);
-    localStorage.removeItem('currentUser');
+    sessionStorage.removeItem('role');
+    sessionStorage.removeItem('token');
+    setActiveView('dashboard');
     navigate('/login');
   };
 
-  useEffect(() => {
-    const user = localStorage.getItem('currentUser');
-    if (user) {
-      setCurrentUser(JSON.parse(user));
+ 
+  const deleteNotificationByMemoId = async (memoId) => {
+    try {
+      const token = sessionStorage.getItem("token");
+      await axios.delete(`http://localhost:5000/api/notifications/delete/${memoId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // You can also update your local state here if needed
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
     }
-    setLoading(false);
-  }, []);
+  };
 
   return (
-    <AuthContext.Provider value={{ currentUser, isAuthenticated, login, logout, loading }}>
+    <AuthContext.Provider value={{
+       currentUser, isAuthenticated,
+         logout, setCurrentUser,
+        activeView, setActiveView,
+        memos, setMemos,
+        viewId, setViewId,
+        caaNotifications, setCaaNotifications,
+        headNotifications, setHeadNotifications,
+        signatureDataURL, setSignatureDataURL,
+        notificationCount, setNotificationCount,
+        deleteNotificationByMemoId
+       }}>
       {children}
     </AuthContext.Provider>
   );

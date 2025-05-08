@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
 const approvalSchema = new mongoose.Schema({
-  role: { type: String, required: true }, // Role of the approver
+  role: { type: String, required: true }, 
   approvedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   digitalSignature: { type: String, required: true }, // Store digital signature
   timestamp: { type: Date, default: Date.now }
@@ -13,13 +13,13 @@ const memoSchema = new mongoose.Schema({
   status: { 
     type: String, 
     enum: [
-      "Pending", "Under Review", "Approved by Head", "Approved by AR", 
-      "Faculty Board Decision", "Approved by Dean", "Approved by AR Campus", 
-      "Campus Board Decision", "Finalized", "Rejected"
+      "Pending", "Approved by Head", "Approved by AR", "Approved by Faculty AR",
+      "Faculty Board Decision: Accepted", "Approved by Dean", "Approved by AR Campus", 
+      "Campus Board Decision: Accepted","Campus Board Decision: Rejected","Faculty Board Decision: Rejected"
     ], 
-    default: "Pending" 
+    default: "Pending"
   },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
   approvals: [approvalSchema], // Store all approvals
   facultyBoardDecision: { type: String, enum: ["Accepted", "Rejected"], default: null },
   campusBoardDecision: { type: String, enum: ["Accepted", "Rejected"], default: null },
