@@ -1,6 +1,7 @@
-import React from 'react';
-import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@mui/material";
 
 const Logout = () => {
   const navigate = useNavigate();
@@ -8,28 +9,29 @@ const Logout = () => {
   const handleLogout = async () => {
     try {
       // Sending a request to the backend to log the user out
-      await axios.post('http://localhost:5000/api/auth/logout', {}, { withCredentials: true });
+      await axios.post("http://localhost:5000/api/auth/logout", {}, { withCredentials: true });
 
       // Clear the user session in your frontend (optional)
-      // This could be done by removing the token from localStorage/sessionStorage
-      sessionStorage.removeItem('user');
-      sessionStorage.removeItem('user');
+      sessionStorage.removeItem("token"); // Remove token
+      sessionStorage.removeItem("role");  // Optional: remove user role or any other session data
 
       // Redirect to the login page
-      navigate('/login');
+      navigate("/login");
     } catch (err) {
-      console.error('Logout Error:', err);
+      console.error("Logout Error:", err);
       // You can show an error message here if needed
     }
   };
 
   return (
-    <button
+    <Button
       onClick={handleLogout}
-      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+      variant="contained"
+      color="error"
+      sx={{ padding: "8px 16px", borderRadius: "8px" }}
     >
       Logout
-    </button>
+    </Button>
   );
 };
 

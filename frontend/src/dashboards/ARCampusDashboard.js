@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import KPICard from "../components/cards/KPICard";
-import RecentCampus from "../components/recent_memos/RecentCampus"; // Assuming this is the correct component
+import { Grid, Card, CardContent, Typography, Icon } from "@mui/material";
 import { FaEnvelope, FaCheckCircle } from "react-icons/fa";
+import RecentCampus from "../components/recent_memos/RecentCampus"; // Assuming this is the correct component
 
 const ARCampusDashboard = () => {
   const [memos, setMemos] = useState([]);
@@ -40,34 +40,82 @@ const ARCampusDashboard = () => {
   ).length;
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">
+    <div style={{ padding: "24px" }}>
+      <Typography variant="h4" gutterBottom>
         Welcome, Campus AR
-      </h1>
+      </Typography>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <KPICard title="Total Memos" value={totalMemos} icon={<FaEnvelope />} />
-        <KPICard
-          title="Approved"
-          value={`${pendingCount}`}
-          icon={<FaCheckCircle />}
-        />
-        <KPICard
-          title="Campus Board Accepted"
-          value={`${approvedCount}`}
-          icon={<FaCheckCircle />}
-        />
-        <KPICard
-          title="Campus Board Rejected"
-          value={`${rejectedCount}`}
-          icon={<FaCheckCircle />}
-        />
-      </div>
+      <Grid container spacing={4}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                Total Memos
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                {totalMemos}
+              </Typography>
+              <Icon sx={{ color: "primary.main", fontSize: "2rem" }}>
+                <FaEnvelope />
+              </Icon>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                Approved
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                {pendingCount}
+              </Typography>
+              <Icon sx={{ color: "primary.main", fontSize: "2rem" }}>
+                <FaCheckCircle />
+              </Icon>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                Campus Board Accepted
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                {approvedCount}
+              </Typography>
+              <Icon sx={{ color: "primary.main", fontSize: "2rem" }}>
+                <FaCheckCircle />
+              </Icon>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                Campus Board Rejected
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                {rejectedCount}
+              </Typography>
+              <Icon sx={{ color: "primary.main", fontSize: "2rem" }}>
+                <FaCheckCircle />
+              </Icon>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Recent Memos Table */}
       <RecentCampus memos={memos} />
     </div>
   );
 };
+
 export default ARCampusDashboard;

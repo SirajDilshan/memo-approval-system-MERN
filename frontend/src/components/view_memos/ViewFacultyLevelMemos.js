@@ -1,112 +1,136 @@
 import React from "react";
+import {
+  Box,
+  Typography,
+  Grid,
+  Paper,
+  Button,
+  Avatar
+} from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
+import GeneratePdf from "../generate_pdf/GeneratePdf";
 
 const ViewFacultyLevelMemos = () => {
-  const {
-    memos,
-    viewId,
-    setActiveView
-  } = useAuth();
-
+  const { memos, viewId, setActiveView } = useAuth();
   const selectedMemo = memos?.find((memo) => memo._id === viewId);
-
 
   if (!selectedMemo) {
     return (
-      <div className="p-6 text-center text-gray-600">
-        No memo selected or memo not found.
-      </div>
+      <Box p={4} textAlign="center">
+        <Typography variant="body1" color="text.secondary">
+          No memo selected or memo not found.
+        </Typography>
+      </Box>
     );
   }
 
-
-
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-6 max-w-4xl mx-auto mt-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Memo Details</h2>
+    <Paper elevation={3} sx={{ p: 4, maxWidth: 900, mx: "auto", mt: 4, borderRadius: 4 }}>
+      <Typography variant="h5" fontWeight="bold" mb={3}>
+        Memo Details
+      </Typography>
 
       {/* Memo Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-        <div>
-          <strong>Title:</strong> {selectedMemo.title}
-        </div>
-        <div>
-          <strong>Status:</strong> {selectedMemo.status}
-        </div>
-        <div>
-          <strong>Created By:</strong> {selectedMemo.createdBy?.email} (
-          {selectedMemo.createdBy?.role})
-        </div>
-        <div>
-          <strong>Created At:</strong>{" "}
-          {new Date(selectedMemo.createdAt).toLocaleString()}
-        </div>
-        <div>
-          <strong>Updated At:</strong>{" "}
-          {new Date(selectedMemo.updatedAt).toLocaleString()}
-        </div>
-        <div>
-          <strong>Faculty Decision:</strong>{" "}
-          {selectedMemo.facultyBoardDecision || "Pending"}
-        </div>
-      </div>
+      <Grid container spacing={2}>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="body2">
+            <strong>Memo Id:</strong> {selectedMemo.memo_id}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="body2">
+            <strong>Title:</strong> {selectedMemo.title}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="body2">
+            <strong>Status:</strong> {selectedMemo.status}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="body2">
+            <strong>Created By:</strong> {selectedMemo.createdBy?.email} ({selectedMemo.createdBy?.role})
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="body2">
+            <strong>Created At:</strong> {new Date(selectedMemo.createdAt).toLocaleString()}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="body2">
+            <strong>Updated At:</strong> {new Date(selectedMemo.updatedAt).toLocaleString()}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography variant="body2">
+            <strong>Faculty Decision:</strong> {selectedMemo.facultyBoardDecision || "Pending"}
+          </Typography>
+        </Grid>
+      </Grid>
 
       {/* Content */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Content</h3>
-        <p className="bg-gray-50 p-4 rounded-md text-gray-800 leading-relaxed whitespace-pre-wrap">
-          {selectedMemo.content}
-        </p>
-      </div>
+      <Box mt={4}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          Content
+        </Typography>
+        <Paper variant="outlined" sx={{ p: 2, whiteSpace: "pre-wrap", backgroundColor: "#f9f9f9" }}>
+          <Typography variant="body2" color="text.primary">
+            {selectedMemo.content}
+          </Typography>
+        </Paper>
+      </Box>
 
-      {/* Approval History (with signature, roles, timestamps) */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2 text-gray-800">
+      {/* Approval History */}
+      <Box mt={4}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
           Approval History
-        </h3>
+        </Typography>
         {selectedMemo.approvals && selectedMemo.approvals.length > 0 ? (
-          <ul className="space-y-4 text-sm text-gray-700">
+          <Box display="flex" flexDirection="column" gap={2}>
             {selectedMemo.approvals.map((approval, index) => (
-              <li
-                key={index}
-                className="p-3 border rounded-md shadow-sm bg-gray-50"
-              >
-                <div>
+              <Paper key={index} variant="outlined" sx={{ p: 2 }}>
+                <Typography variant="body2">
                   <strong>Role:</strong> {approval.role}
-                </div>
-                <div>
-                  <strong>Approved By:</strong> {approval.approvedBy}
-                </div>
-                <div>
-                  <strong>Date:</strong>{" "}
-                  {new Date(approval.timestamp).toLocaleString()}
-                </div>
+                </Typography>
+                <Typography variant="body2">
+                  <strong>Date:</strong> {new Date(approval.timestamp).toLocaleString()}
+                </Typography>
                 {approval.digitalSignature && (
-                  <div className="mt-2">
-                    <strong>Digital Signature:</strong>
-                    <img
+                  <Box mt={2}>
+                    <Typography variant="body2" fontWeight="bold">
+                      Signature:
+                    </Typography>
+                    <Avatar
+                      variant="square"
                       src={approval.digitalSignature}
                       alt="Digital Signature"
-                      className="mt-1 border rounded w-48"
+                      sx={{ mt: 1, width: 150, height: "auto", border: "1px solid #ccc" }}
                     />
-                  </div>
+                  </Box>
                 )}
-              </li>
+              </Paper>
             ))}
-          </ul>
+          </Box>
         ) : (
-          <p className="text-gray-500">No approvals yet.</p>
+          <Typography variant="body2" color="text.secondary">
+            No approvals yet.
+          </Typography>
         )}
+      </Box>
 
-        
-      </div>
-      <button
-        onClick={() => setActiveView("approvedByHead")}
-        className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-      >
-        OK
-      </button>
-    </div>
+      {/* OK Button */}
+      <Box mt={4} display="flex" justifyContent="flex-end">
+    <GeneratePdf />
+        <Button
+          variant="contained"
+          color="success"
+          onClick={() => setActiveView("approvedByHead")}
+        >
+          OK
+        </Button>
+      </Box>
+    </Paper>
   );
 };
 

@@ -1,5 +1,14 @@
 import React, { useEffect } from "react";
 import axios from "axios";
+import {
+  Box,
+  Typography,
+  Grid,
+  Paper,
+  Button,
+  Divider,
+  List
+} from "@mui/material";
 import { useAuth } from "../../context/AuthContext";
 
 const ARDecision = () => {
@@ -16,13 +25,13 @@ const ARDecision = () => {
 
   useEffect(() => {
     setSignatureDataURL(null);
-  }, [viewId,setSignatureDataURL]);
+  }, [viewId, setSignatureDataURL]);
 
   if (!selectedMemo) {
     return (
-      <div className="p-6 text-center text-gray-600">
-        No memo selected or memo not found.
-      </div>
+      <Box p={4} textAlign="center">
+        <Typography color="text.secondary">No memo selected or memo not found.</Typography>
+      </Box>
     );
   }
 
@@ -31,9 +40,7 @@ const ARDecision = () => {
       const token = sessionStorage.getItem("token");
       const response = await axios.put(
         `http://localhost:5000/api/memos/faculty-board/${selectedMemo._id}`,
-        {
-          decision,
-        },
+        { decision },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -42,7 +49,6 @@ const ARDecision = () => {
         }
       );
 
-      // Update local memo state
       setMemos((prev) =>
         prev.map((memo) =>
           memo._id === selectedMemo._id ? response.data : memo
@@ -58,105 +64,113 @@ const ARDecision = () => {
   };
 
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-6 max-w-4xl mx-auto mt-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Memo Details</h2>
+    <Box maxWidth="md" mx="auto" mt={4} p={2}>
+      <Paper elevation={3} sx={{ p: 4, borderRadius: 4 }}>
+        <Typography variant="h5" gutterBottom fontWeight="bold">
+          Memo Details
+        </Typography>
 
-      {/* Memo Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-        <div>
-          <strong>Title:</strong> {selectedMemo.title}
-        </div>
-        <div>
-          <strong>Status:</strong> {selectedMemo.status}
-        </div>
-        <div>
-          <strong>Created By:</strong> {selectedMemo.createdBy?.email} (
-          {selectedMemo.createdBy?.role})
-        </div>
-        <div>
-          <strong>Created At:</strong>{" "}
-          {new Date(selectedMemo.createdAt).toLocaleString()}
-        </div>
-        <div>
-          <strong>Updated At:</strong>{" "}
-          {new Date(selectedMemo.updatedAt).toLocaleString()}
-        </div>
-        <div>
-          <strong>Faculty Decision:</strong>{" "}
-          {selectedMemo.facultyBoardDecision || "Pending"}
-        </div>
-        <div>
-          <strong>Campus Decision:</strong>{" "}
-          {selectedMemo.campusBoardDecision || "Pending"}
-        </div>
-      </div>
+        <Grid container spacing={2} sx={{ fontSize: "0.9rem" }}>
+          <Grid item xs={12} sm={6}>
+                    <strong>Memo Id:</strong> {selectedMemo.memo_id}
+                  </Grid>
+          <Grid item xs={12} sm={6}>
+            <strong>Title:</strong> {selectedMemo.title}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <strong>Status:</strong> {selectedMemo.status}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <strong>Created By:</strong> {selectedMemo.createdBy?.email} (
+            {selectedMemo.createdBy?.role})
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <strong>Created At:</strong>{" "}
+            {new Date(selectedMemo.createdAt).toLocaleString()}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <strong>Updated At:</strong>{" "}
+            {new Date(selectedMemo.updatedAt).toLocaleString()}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <strong>Faculty Decision:</strong>{" "}
+            {selectedMemo.facultyBoardDecision || "Pending"}
+          </Grid>
+          <Grid item xs={12} sm={6}>
+            <strong>Campus Decision:</strong>{" "}
+            {selectedMemo.campusBoardDecision || "Pending"}
+          </Grid>
+        </Grid>
 
-      {/* Content */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Content</h3>
-        <p className="bg-gray-50 p-4 rounded-md text-gray-800 leading-relaxed whitespace-pre-wrap">
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="h6" gutterBottom>
+          Content
+        </Typography>
+        <Paper variant="outlined" sx={{ p: 2, whiteSpace: "pre-wrap" }}>
           {selectedMemo.content}
-        </p>
-      </div>
+        </Paper>
 
-      {/* Approval History */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2 text-gray-800">
+        <Divider sx={{ my: 3 }} />
+
+        <Typography variant="h6" gutterBottom>
           Approval History
-        </h3>
+        </Typography>
         {selectedMemo.approvals && selectedMemo.approvals.length > 0 ? (
-          <ul className="space-y-4 text-sm text-gray-700">
+          <List>
             {selectedMemo.approvals.map((approval, index) => (
-              <li
-                key={index}
-                className="p-3 border rounded-md shadow-sm bg-gray-50"
-              >
-                <div>
+              <Paper key={index} sx={{ mb: 2, p: 2 }} variant="outlined">
+                <Typography>
                   <strong>Role:</strong> {approval.role}
-                </div>
-                <div>
+                </Typography>
+                <Typography>
                   <strong>Approved By:</strong> {approval.approvedBy}
-                </div>
-                <div>
+                </Typography>
+                <Typography>
                   <strong>Date:</strong>{" "}
                   {new Date(approval.timestamp).toLocaleString()}
-                </div>
+                </Typography>
                 {approval.digitalSignature && (
-                  <div className="mt-2">
-                    <strong>Digital Signature:</strong>
-                    <img
-                      src={approval.digitalSignature}
-                      alt="Digital Signature"
-                      className="mt-1 border rounded w-48"
-                    />
-                  </div>
+                  <Box mt={1}>
+                    <Typography>
+                      <strong>Digital Signature:</strong>
+                    </Typography>
+                    <Box mt={1}>
+                      <img
+                        src={approval.digitalSignature}
+                        alt="Digital Signature"
+                        style={{ borderRadius: 4, width: 200, border: "1px solid #ccc" }}
+                      />
+                    </Box>
+                  </Box>
                 )}
-              </li>
+              </Paper>
             ))}
-          </ul>
+          </List>
         ) : (
-          <p className="text-gray-500">No approvals yet.</p>
+          <Typography color="text.secondary">No approvals yet.</Typography>
         )}
-      </div>
 
-      {/* Decision Buttons */}
-      {currentUser === "AR_Faculty" && (
-        <div className="mt-6 flex gap-4">
-          <button
-            onClick={() => handleDecision("Accepted")}
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-          >
-            Accept
-          </button>
-          <button
-            onClick={() => handleDecision("Rejected")}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition"
-          >
-            Reject
-          </button>
-        </div>
-      )}
-    </div>
+        {currentUser === "AR_Faculty" && (
+          <Box mt={4} display="flex" gap={2}>
+            <Button
+              variant="contained"
+              color="success"
+              onClick={() => handleDecision("Accepted")}
+            >
+              Accept
+            </Button>
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => handleDecision("Rejected")}
+            >
+              Reject
+            </Button>
+          </Box>
+        )}
+      </Paper>
+    </Box>
   );
 };
 

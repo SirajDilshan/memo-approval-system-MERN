@@ -1,26 +1,56 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
+import {
+  TextField,
+  Button,
+  Typography,
+  Box,
+  Alert,
+} from "@mui/material";
 
 const EditMemoFacultyCAA = () => {
-  const { memos, viewId, setActiveView } = useAuth();
-  const selectedMemo = memos.find((memo) => memo._id === viewId);
-
-  const [title, setTitle] = useState(selectedMemo?.title || "");
-  const [content, setContent] = useState(selectedMemo?.content || "");
+  const { memos, viewId, setActiveView, activeView } = useAuth();
+  const [selectedMemo, setSelectedMemo] = useState(null);
+  const [memo_id, setMemoId] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
   const [message, setMessage] = useState("");
+
+  // Load selected memo and generate memo_id
+  useEffect(() => {
+    const memo = memos.find((m) => m._id === viewId);
+    setSelectedMemo(memo);
+
+    if (memo) {
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+
+      // Extract type and number from the original memo_id
+      const type = memo?.memo_id?.match(/[A-Z]+/)?.[0] || "CIR";
+      const num = memo?.memo_id?.match(/\d+$/)?.[0] || "001";
+
+      const generatedMemoId = `TC/FAS/FB/${year}/${month}/${type}${num}`;
+
+      setMemoId(generatedMemoId);
+      setTitle(memo.title || "");
+      setContent(memo.content || "");
+    }
+  }, [viewId, activeView, memos]);
 
   if (!selectedMemo) {
     return (
-      <div className="p-6 text-gray-600">
-        No memo selected or memo not found.
-      </div>
+      <Box sx={{ padding: "2rem", textAlign: "center" }}>
+        <Typography variant="h6" color="textSecondary">
+          No memo selected or memo not found.
+        </Typography>
+      </Box>
     );
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const token = sessionStorage.getItem("token");
 
     try {
@@ -44,13 +74,13 @@ const EditMemoFacultyCAA = () => {
           setActiveView("facultycaacreatedmemos");
         }, 1000);
 
-        // ✅ Send notification to Head_Department role
+        // ✅ Send notification to AR_Faculty
         await axios.post(
           "http://localhost:5000/api/notifications/create",
           {
-            memoId: selectedMemo._id,
+            memoId: viewId,
             role: "AR_Faculty",
-            message: "Memo Updated",
+            message: `Memo Updated : ${title}`,
           },
           {
             headers: {
@@ -68,46 +98,76 @@ const EditMemoFacultyCAA = () => {
   };
 
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-6 max-w-3xl mx-auto mt-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Edit memo</h2>
+    <Box
+      sx={{
+        backgroundColor: "white",
+        boxShadow: 3,
+        borderRadius: "16px",
+        padding: "2rem",
+        maxWidth: "600px",
+        margin: "auto",
+        marginTop: "3rem",
+      }}
+    >
+      <Typography variant="h5" gutterBottom>
+        Edit Memo
+      </Typography>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-gray-700 font-semibold mb-1">
-            Title
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
-        </div>
+      <form onSubmit={handleSubmit}>
+        <TextField
+          label="Memo Id"
+          value={memo_id}
+          fullWidth
+          variant="outlined"
+          required
+          InputProps={{ readOnly: true }}
+          sx={{ marginBottom: "1.5rem" }}
+        />
 
-        <div>
-          <label className="block text-gray-700 font-semibold mb-1">
-            Content
-          </label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows="6"
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          ></textarea>
-        </div>
+        <TextField
+          label="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          fullWidth
+          variant="outlined"
+          required
+          sx={{ marginBottom: "1.5rem" }}
+        />
 
-        {message && <div className="text-sm text-green-600">{message}</div>}
+        <TextField
+          label="Content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          fullWidth
+          multiline
+          rows={6}
+          variant="outlined"
+          required
+          sx={{ marginBottom: "1.5rem" }}
+        />
 
-        <button
+        {message && (
+          <Alert severity="success" sx={{ marginBottom: "1rem" }}>
+            {message}
+          </Alert>
+        )}
+
+        <Button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+          variant="contained"
+          color="primary"
+          sx={{
+            padding: "0.75rem 2rem",
+            fontSize: "1rem",
+            "&:hover": {
+              backgroundColor: "#1976d2",
+            },
+          }}
         >
           Update Memo
-        </button>
+        </Button>
       </form>
-    </div>
+    </Box>
   );
 };
 

@@ -1,6 +1,19 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import {
+  Button,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Typography,
+  Grid,
+} from "@mui/material";
 
 const ARCampusMemos = () => {
   const [loading, setLoading] = useState(true);
@@ -54,87 +67,81 @@ const ARCampusMemos = () => {
       case "Approved":
       case "Approved by Head":
       case "Approved by Faculty AR":
-        return "text-green-600 font-semibold";
+        return "green";
       case "Rejected":
-        return "text-red-600 font-semibold";
+        return "red";
       case "Pending":
       case "Under Review":
-        return "text-yellow-600 font-semibold";
+        return "yellow";
       default:
-        return "text-gray-600";
+        return "gray";
     }
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
+      <Typography variant="h5" component="h2" gutterBottom>
         Memos Created by CAA Faculty
-      </h2>
+      </Typography>
 
       {/* Filter Buttons */}
-      <div className="mb-4 flex gap-3">
+      <Grid container spacing={2} mb={4}>
         {["All", "Sign", "View Only"].map((type) => (
-          <button
-            key={type}
-            onClick={() => handleFilterChange(type)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-              filterType === type
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200 text-gray-800 hover:bg-gray-300"
-            }`}
-          >
-            {type}
-          </button>
+          <Grid item key={type}>
+            <Button
+              variant={filterType === type ? "contained" : "outlined"}
+              color={filterType === type ? "primary" : "default"}
+              onClick={() => handleFilterChange(type)}
+            >
+              {type}
+            </Button>
+          </Grid>
         ))}
-      </div>
+      </Grid>
 
-      <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
-        <table className="min-w-full text-sm text-left text-gray-700">
-          <thead className="bg-gray-100 text-xs uppercase tracking-wider text-gray-600">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Created By</th>
-              <th className="px-4 py-3">Campus Decision</th>
-              <th className="px-4 py-3">Created At</th>
-              <th className="px-4 py-3">Updated At</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }}>
+          <TableHead>
+            <TableRow>
+              <TableCell>Memo Id</TableCell>
+              <TableCell>Title</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Created By</TableCell>
+              <TableCell>Campus Decision</TableCell>
+              <TableCell>Created At</TableCell>
+              <TableCell>Updated At</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {loading ? (
-              <tr>
-                <td colSpan="9" className="text-center px-4 py-6 text-gray-500">
-                  Loading memos...
-                </td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
             ) : filteredMemos.length === 0 ? (
-              <tr>
-                <td colSpan="9" className="text-center px-4 py-6 text-gray-500">
+              <TableRow>
+                <TableCell colSpan={7} align="center">
                   No memos found for selected filter.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               filteredMemos.map((memo) => (
-                <tr key={memo._id} className="border-t hover:bg-gray-50 transition">
-                  <td className="px-4 py-3">{memo.title}</td>
-                  <td className={`px-4 py-3 ${getStatusColor(memo.status)}`}>
+                <TableRow key={memo._id} sx={{ "&:hover": { backgroundColor: "#f5f5f5" } }}>
+                  <TableCell>{memo.memo_id}</TableCell>
+                  <TableCell>{memo.title}</TableCell>
+                  <TableCell style={{ color: getStatusColor(memo.status) }}>
                     {memo.status}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     {memo.createdBy?.email} ({memo.createdBy?.role})
-                  </td>
-                  <td className="px-4 py-3">
-                    {memo.campusBoardDecision || "N/A"}
-                  </td>
-                  <td className="px-4 py-3">
-                    {new Date(memo.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    {new Date(memo.updatedAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
+                  </TableCell>
+                  <TableCell>{memo.campusBoardDecision || "N/A"}</TableCell>
+                  <TableCell>{new Date(memo.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(memo.updatedAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Button
                       onClick={() => {
                         setViewId(memo._id);
                         setActiveView(
@@ -143,21 +150,18 @@ const ARCampusMemos = () => {
                             : "viewcampuslevelmemo"
                         );
                       }}
-                      className={`${
-                        memo.status === "Approved by Dean"
-                          ? "bg-green-600 hover:bg-green-700"
-                          : "bg-blue-600 hover:bg-blue-700"
-                      } text-white px-3 py-1 rounded-lg text-sm transition duration-200`}
+                      variant="contained"
+                      color={memo.status === "Approved by Dean" ? "success" : "primary"}
                     >
                       {memo.status === "Approved by Dean" ? "Sign" : "View"}
-                    </button>
-                  </td>
-                </tr>
+                    </Button>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 };

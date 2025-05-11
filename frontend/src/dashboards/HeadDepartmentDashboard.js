@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import KPICard from "../components/cards/KPICard";
-import RecentMemosTable from "../components/recent_memos/RecentMemosTable";
+import { Grid, Card, CardContent, Typography, Icon, Box } from "@mui/material";
 import { FaEnvelope, FaCheckCircle, FaClock } from "react-icons/fa";
+import RecentMemosTable from "../components/recent_memos/RecentMemosTable"; // Assuming this is the correct component
 
 const CAADepartmentDashboard = () => {
   const [memos, setMemos] = useState([]);
@@ -17,8 +17,12 @@ const CAADepartmentDashboard = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        console.log(res.data);
-        setMemos(res.data);
+        // Filter memos created by CAA_Department
+        const filtered = res.data.filter(
+          (memo) => memo.createdBy?.role === "CAA_Department"
+        );
+
+        setMemos(filtered);
       } catch (err) {
         console.error("Failed to fetch memos:", err);
       }
@@ -38,34 +42,81 @@ const CAADepartmentDashboard = () => {
   ).length;
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-800">
+    <Box sx={{ padding: "24px" }}>
+      <Typography variant="h4" gutterBottom>
         Welcome, Head of the Department
-      </h1>
+      </Typography>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-        <KPICard title="Total Memos" value={totalMemos} icon={<FaEnvelope />} />
-        <KPICard
-          title="Pending Approval"
-          value={pendingCount}
-          icon={<FaClock />}
-        />
-        <KPICard
-          title="Faculty Board: Accepted"
-          value={`${approvedCount}`}
-          icon={<FaCheckCircle />}
-        />
-        <KPICard
-          title="Faculty Board: Rejected"
-          value={`${rejectedCount}`}
-          icon={<FaCheckCircle />}
-        />
-      </div>
+      <Grid container spacing={4}>
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                Total Memos
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                {totalMemos}
+              </Typography>
+              <Icon sx={{ color: "primary.main", fontSize: "2rem" }}>
+                <FaEnvelope />
+              </Icon>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                Pending Approval
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                {pendingCount}
+              </Typography>
+              <Icon sx={{ color: "primary.main", fontSize: "2rem" }}>
+                <FaClock />
+              </Icon>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                Faculty Board: Accepted
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                {approvedCount}
+              </Typography>
+              <Icon sx={{ color: "primary.main", fontSize: "2rem" }}>
+                <FaCheckCircle />
+              </Icon>
+            </CardContent>
+          </Card>
+        </Grid>
+
+        <Grid item xs={12} sm={6} md={3}>
+          <Card>
+            <CardContent>
+              <Typography variant="body2" color="text.secondary">
+                Faculty Board: Rejected
+              </Typography>
+              <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
+                {rejectedCount}
+              </Typography>
+              <Icon sx={{ color: "primary.main", fontSize: "2rem" }}>
+                <FaCheckCircle />
+              </Icon>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
 
       {/* Recent Memos Table */}
       <RecentMemosTable memos={memos} />
-    </div>
+    </Box>
   );
 };
 

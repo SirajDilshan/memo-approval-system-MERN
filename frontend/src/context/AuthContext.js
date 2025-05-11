@@ -15,8 +15,9 @@ export function AuthProvider({ children }) {
   const [caaNotifications, setCaaNotifications ] = useState([]);
   const [headNotifications, setHeadNotifications ] = useState([]);
   const [signatureDataURL, setSignatureDataURL] = useState();
-
+const [showNotifications, setShowNotifications] = useState(false);
 const [notificationCount, setNotificationCount] = useState();
+  const [notifications, setNotifications] = useState([]);
 
   const isAuthenticated = () => currentUser !== null;
 
@@ -29,10 +30,11 @@ const [notificationCount, setNotificationCount] = useState();
   };
 
  
-  const deleteNotificationByMemoId = async (memoId) => {
+ 
+  const deleteNotificationByMemoId = async (Id) => {
     try {
       const token = sessionStorage.getItem("token");
-      await axios.delete(`http://localhost:5000/api/notifications/delete/${memoId}`, {
+      await axios.delete(`http://localhost:5000/api/notifications/delete/${Id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       // You can also update your local state here if needed
@@ -52,7 +54,9 @@ const [notificationCount, setNotificationCount] = useState();
         headNotifications, setHeadNotifications,
         signatureDataURL, setSignatureDataURL,
         notificationCount, setNotificationCount,
-        deleteNotificationByMemoId
+        deleteNotificationByMemoId,
+        showNotifications, setShowNotifications,
+        notifications, setNotifications
        }}>
       {children}
     </AuthContext.Provider>

@@ -1,8 +1,8 @@
 // Dashboard.jsx
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import DashboardRouter from "./DashboardRouter";
-import MemoForm from "../components/memo_forms/MemoForm"; // Import your MemoForm component
+import MemoForm from "../components/memo_forms/MemoForm";
 import AllMemos from "../components/view_memos/AllMemos";
 import { useAuth } from "../context/AuthContext";
 import ViewMemo from "../components/view_memos/ViewMemo";
@@ -26,9 +26,23 @@ import EditMemoFacultyCAA from "../components/edit_memos/EditMemoFacultyCAA";
 import ViewCampusLevelMemo from "../components/view_memos/ViewCampusLevelMemos";
 import ViewFacultyLevelMemos from "../components/view_memos/ViewFacultyLevelMemos";
 import ViewARSigned from "../components/view_memos/ViewARSigned";
+import Notifications from "../components/notifications/Notifications";
 
 const Dashboard = () => {
-  const { activeView } = useAuth();
+  const { activeView, currentUser, showNotifications } = useAuth();
+  const [visibleNotif, setVisibleNotif] = useState(false);
+
+  // Handle smooth appearance using useEffect
+  useEffect(() => {
+    let timeout;
+    if (showNotifications) {
+      setVisibleNotif(true); // Instantly show
+    } else {
+      // Delay hiding to allow transition
+      timeout = setTimeout(() => setVisibleNotif(false), 300);
+    }
+    return () => clearTimeout(timeout);
+  }, [showNotifications]);
 
   const renderContent = () => {
     switch (activeView) {
@@ -40,158 +54,80 @@ const Dashboard = () => {
           </>
         );
       case "memos":
-        return (
-          <>
-            <AllMemos />
-          </>
-        );
+        return <AllMemos />;
       case "viewMemo":
-        return (
-          <>
-            <ViewMemo />
-          </>
-        );
+        return <ViewMemo />;
       case "createMemo":
-        return (
-          <>
-            <MemoForm />
-          </>
-        );
+        return <MemoForm />;
       case "editMemo":
-        return (
-          <>
-            <EditMemo />
-          </>
-        );
+        return <EditMemo />;
       case "signMemo":
-        return (
-          <>
-            <HeadApprove />
-          </>
-        );
+        return <HeadApprove />;
       case "approvedByHead":
-        return (
-          <>
-            <ApprovedByHead />
-          </>
-        );
+        return <ApprovedByHead />;
       case "approvedByFacultyAR":
-        return (
-          <>
-            <ARApproved />
-          </>
-        );
+        return <ARApproved />;
       case "arDecision":
-        return (
-          <>
-            <ARDecision />
-          </>
-        );
+        return <ARDecision />;
       case "createMemoFaculty":
-        return (
-          <>
-            <CAAMemoForm />
-          </>
-        );
+        return <CAAMemoForm />;
       case "EditMemoFaculty":
-        return (
-          <>
-            <CAAEditMemo />
-          </>
-        );
+        return <CAAEditMemo />;
       case "allMemosFacultycaa":
-        return (
-          <>
-            <CAAAllMemos />
-          </>
-        );
+        return <CAAAllMemos />;
       case "campuslevelmemos":
-        return (
-          <>
-            <CampusLevelMemos />
-          </>
-        );
+        return <CampusLevelMemos />;
       case "deanallmemos":
-        return (
-          <>
-            <DeanAllMemos />
-          </>
-        );
+        return <DeanAllMemos />;
       case "deansign":
-        return (
-          <>
-            <DeanSign />
-          </>
-        );
+        return <DeanSign />;
       case "arcampusmemos":
-        return (
-          <>
-            <ARCampusMemos />
-          </>
-        );
+        return <ARCampusMemos />;
       case "arcampussign":
-        return (
-          <>
-            <ARCampusSign />
-          </>
-        );
+        return <ARCampusSign />;
       case "campusboarddecision":
-        return (
-          <>
-            <CampusBoardDecision />
-          </>
-        );
+        return <CampusBoardDecision />;
       case "arcampusdecision":
-        return (
-          <>
-            <ARCampusDecision />
-          </>
-        );
+        return <ARCampusDecision />;
       case "rectormemos":
-        return (
-          <>
-            <RectorMemos />
-          </>
-        );
+        return <RectorMemos />;
       case "caaeditmemo":
-        return (
-          <>
-            <EditMemoFacultyCAA />
-          </>
-        );
-        case "facultycaacreatedmemos":
-        return (
-          <>
-            <CAAAllMemos />
-          </>
-        );
+        return <EditMemoFacultyCAA />;
+      case "facultycaacreatedmemos":
+        return <CAAAllMemos />;
       case "viewcampuslevelmemo":
-        return (
-          <>
-            <ViewCampusLevelMemo />
-          </>
-        );
-        case "viewfacultylevelmemo":
-          return (
-            <>
-              <ViewFacultyLevelMemos />
-            </>
-          );
-          case "viewarsigned":
-          return (
-            <>
-              <ViewARSigned />
-            </>
-          );
+        return <ViewCampusLevelMemo />;
+      case "viewfacultylevelmemo":
+        return <ViewFacultyLevelMemos />;
+      case "viewarsigned":
+        return <ViewARSigned />;
       default:
         return <div>Select a view</div>;
     }
   };
 
+  const shouldShowNotifications =
+    currentUser === "CAA_Department" ||
+    currentUser === "Head_Department" ||
+    currentUser === "CAA_Faculty" ||
+    currentUser === "AR_Faculty";
+
   return (
-    <div className="flex">
+    <div className="flex flex-row">
       <Sidebar />
       <div className="flex-grow p-6">{renderContent()}</div>
+
+      {/* Smoothly Appearing Notifications Panel */}
+      {shouldShowNotifications && visibleNotif && (
+        <div
+          className={`fixed top-[100px] right-0 h-screen w-[400px] z-50 overflow-y-auto 
+            transition-all duration-800 ease-in-out
+            ${showNotifications ? "translate-x-0 opacity-100" : "translate-x-full opacity-0"}
+            bg-white bg-opacity-40 backdrop-blur-[2px] shadow-lg`}
+        >
+          <Notifications />
+        </div>
+      )}
     </div>
   );
 };

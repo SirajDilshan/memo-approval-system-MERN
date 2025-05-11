@@ -1,115 +1,103 @@
 // src/components/Navbar.js
-import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import {useEffect} from "react";
+import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-import {
-  FaBell,
-  FaUniversity,
-  FaUserCircle,
-  FaSignOutAlt,
-  FaChartLine,
-  FaCog,
-  FaSignInAlt,
-  FaUserPlus,
-} from "react-icons/fa";
-import Notifications from "../components/notifications/Notifications";
+import { AppBar, Toolbar, IconButton, Badge, Button, Typography, Box } from "@mui/material";
+import { FaBell, FaUniversity, FaSignOutAlt, FaChartLine, FaSignInAlt, FaUserPlus } from "react-icons/fa";
 
 const Navbar = () => {
-  const [showNotifications, setShowNotifications] = useState(false);
-  const { currentUser, notificationCount } = useAuth();
-
+  const {  notificationCount, showNotifications, setShowNotifications, currentUser, setNotificationCount ,setNotifications} = useAuth();
   const auth = useAuth();
 
   const handleLogout = () => {
     auth.logout();
   };
+  useEffect(() => {
+    let intervalId;
+
+    const fetchNotifications = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await axios.get(
+          `http://localhost:5000/api/notifications/role/${currentUser}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setNotifications(res.data);
+  
+        setNotificationCount(res.data.length);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    if (currentUser) {
+      fetchNotifications(); // initial fetch
+      intervalId = setInterval(fetchNotifications, 4000); // fetch every 4 sec
+    }
+
+    return () => clearInterval(intervalId); // clean up
+  }, [currentUser, setNotificationCount,setNotifications]);
 
   return (
-    <nav className="bg-gradient-to-r from-blue-600 to-blue-800 p-4 shadow-lg relative">
-      <div className="container mx-auto flex justify-between items-center">
-        <Link
-          className="flex items-center space-x-2 text-white hover:text-blue-200 transition-colors duration-300"
-        >
-          <FaUniversity className="text-3xl" />
-          <span className="text-2xl font-bold hidden sm:inline-block">
+    <AppBar position="sticky" sx={{ backgroundColor: "primary.main" }}>
+      <Toolbar>
+        <Link to="/" style={{ display: "flex", alignItems: "center", textDecoration: "none" }}>
+          <FaUniversity size={30} />
+          <Typography variant="h6" sx={{ ml: 1, fontSize: "1.5rem", fontWeight: "bold", color: "white" }}>
             UMIS
-          </span>
+          </Typography>
         </Link>
+        
+        <Box sx={{ flexGrow: 1 }} />
 
-        <div className="flex items-center space-x-4 md:space-x-6">
-          {auth.currentUser ? (
-            <>
-              <Link
-                to="/dashboard"
-                className="flex items-center text-white hover:text-blue-200 transition-colors duration-300"
-              >
-                <FaChartLine className="mr-1" />
-                <span className="hidden md:inline">Dashboard</span>
-              </Link>
-              <Link
-                to="/profile"
-                className="flex items-center text-white hover:text-blue-200 transition-colors duration-300"
-              >
-                <FaUserCircle className="mr-1" />
-                <span className="hidden md:inline">Profile</span>
-              </Link>
-              <Link
-                to="/settings"
-                className="flex items-center text-white hover:text-blue-200 transition-colors duration-300"
-              >
-                <FaCog className="mr-1" />
-                <span className="hidden md:inline">Settings</span>
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center text-white hover:text-red-300 transition-colors duration-300"
-              >
-                <FaSignOutAlt className="mr-1" />
-                <span className="hidden md:inline">Logout</span>
-              </button>
+        {auth.currentUser ? (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Link to="/dashboard" style={{ textDecoration: "none" }}>
+              <Button sx={{ color: "white", "&:hover": { color: "#90caf9" } }} startIcon={<FaChartLine />}>
+                Dashboard
+              </Button>
+            </Link>
 
-              {currentUser && (
-                <button
-                  onClick={() => setShowNotifications(!showNotifications)}
-                  className="relative text-white hover:text-red-300 transition-colors duration-300"
-                >
-                  <FaBell className="text-lg" />
-                  {notificationCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {notificationCount}
-                    </span>
-                  )}
-                </button>
-              )}
-            </>
-          ) : (
-            <>
-              <Link
-                to="/login"
-                className="flex items-center px-3 py-1 text-white hover:text-blue-200 transition-colors duration-300"
-              >
-                <FaSignInAlt className="mr-1" />
-                <span className="hidden md:inline">Login</span>
-              </Link>
-              <Link
-                to="/register"
-                className="flex items-center px-3 py-1 bg-white text-blue-600 rounded-md hover:bg-blue-50 transition-colors duration-300"
-              >
-                <FaUserPlus className="mr-1" />
-                <span className="hidden md:inline">Register</span>
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
 
-      {/* Show Notifications component in top-right corner */}
-      {showNotifications && (
-        <div className="absolute top-20 right-4 z-50">
-          <Notifications />
-        </div>
-      )}
-    </nav>
+            <Button onClick={handleLogout} sx={{ color: "white", "&:hover": { color: "#f44336" } }} startIcon={<FaSignOutAlt />}>
+              Logout
+            </Button>
+
+            <IconButton onClick={() => setShowNotifications(!showNotifications)} color="inherit">
+              <Badge
+                badgeContent={notificationCount}
+                color="error"
+                anchorOrigin={{
+                  vertical: 'top',
+                  horizontal: 'right',
+                }}
+              >
+                <FaBell size={20} />
+              </Badge>
+            </IconButton>
+          </Box>
+        ) : (
+          <Box sx={{ display: "flex", alignItems: "center" }}>
+            <Link to="/login" style={{ textDecoration: "none" }}>
+              <Button sx={{ color: "white", "&:hover": { color: "#90caf9" } }} startIcon={<FaSignInAlt />}>
+                Login
+              </Button>
+            </Link>
+
+            <Link to="/register" style={{ textDecoration: "none" }}>
+              <Button variant="contained" color="secondary" startIcon={<FaUserPlus />}>
+                Register
+              </Button>
+            </Link>
+          </Box>
+        )}
+      </Toolbar>
+    </AppBar>
   );
 };
 

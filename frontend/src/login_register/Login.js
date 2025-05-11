@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import { Box, TextField, Button, Typography, CircularProgress } from "@mui/material";
 
 function Login() {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -51,49 +52,77 @@ function Login() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-100">
-      <div className="w-full max-w-md p-8 bg-white rounded-2xl shadow-lg">
-        <h2 className="text-2xl font-semibold text-center text-gray-700 mb-6">
+    <Box
+      sx={{
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        minHeight: "100vh",
+        backgroundColor: "#f0f4f8",
+      }}
+    >
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: "400px",
+          p: 4,
+          backgroundColor: "white",
+          borderRadius: "12px",
+          boxShadow: 3,
+        }}
+      >
+        <Typography variant="h4" align="center" gutterBottom>
           Login to Your Account
-        </h2>
+        </Typography>
 
         {error && (
-          <p className="mb-4 text-sm text-red-500 text-center">{error}</p>
+          <Typography variant="body2" color="error" align="center" mb={2}>
+            {error}
+          </Typography>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <input
+        <form onSubmit={handleSubmit}>
+          <TextField
+            label="Email"
             name="email"
             type="email"
-            placeholder="Email"
             value={formData.email}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
             onChange={handleChange}
+            fullWidth
             required
+            margin="normal"
+            variant="outlined"
           />
 
-          <input
+          <TextField
+            label="Password"
             name="password"
             type="password"
-            placeholder="Password"
             value={formData.password}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
             onChange={handleChange}
+            fullWidth
             required
+            margin="normal"
+            variant="outlined"
           />
 
-          <button
+          <Button
             type="submit"
+            variant="contained"
+            color="primary"
+            fullWidth
+            sx={{ mt: 2 }}
             disabled={isLoading}
-            className={`w-full bg-blue-600 text-white font-medium py-2 rounded-lg hover:bg-blue-700 transition ${
-              isLoading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
           >
-            {isLoading ? "Logging in..." : "Login"}
-          </button>
+            {isLoading ? (
+              <CircularProgress size={24} sx={{ color: "white" }} />
+            ) : (
+              "Login"
+            )}
+          </Button>
         </form>
-      </div>
-    </div>
+      </Box>
+    </Box>
   );
 }
 

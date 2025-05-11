@@ -3,10 +3,11 @@ const Notification = require('../models/NotificationModel');
 
 const createNotification = async (req, res) => {
   const { memoId, role, message } = req.body;
-
+console.log(req.body);
   try {
     const newNotification = await Notification.create({ memoId, role, message });
     res.status(201).json(newNotification);
+    console.log("createNotification");
   } catch (error) {
     res.status(500).json({ error: 'Failed to create notification' });
   }

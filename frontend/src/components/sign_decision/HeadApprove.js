@@ -2,20 +2,30 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
 import SignaturePad from "./SignaturePad";
 import axios from "axios";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Paper,
+  Alert,
+} from "@mui/material";
 
 const HeadApprove = () => {
   const {
     memos,
     setActiveView,
+    activeView,
     viewId,
     signatureDataURL,
     setSignatureDataURL,
     setCaaNotifications,
   } = useAuth();
 
-  const selectedMemo = memos.find((memo) => memo._id === viewId);
+  const [selectedMemo, setSelectedMemo] = useState(null);
   const [notifyToCaa, setNotifyToCaa] = useState(false);
   const [caaMessage, setCaaMessage] = useState("");
+  const [memo_id, setMemo_id] = useState(selectedMemo?.memo_id || "");
   const [title, setTitle] = useState(selectedMemo?.title || "");
   const [content, setContent] = useState(selectedMemo?.content || "");
   const [message, setMessage] = useState("");
@@ -24,15 +34,19 @@ const HeadApprove = () => {
   const digitalSignature = signatureDataURL;
 
   useEffect(() => {
-    // Clear previous signature when a new memo is selected
+    const memo = memos.find((m) => m._id === viewId);
+    setSelectedMemo(memo);
+    setMemo_id(memo?.memo_id || "");
+    setTitle(memo?.title || "");
+    setContent(memo?.content || "");
     setSignatureDataURL(null);
-  }, [viewId,setSignatureDataURL]);
+  }, [viewId, setSignatureDataURL, activeView, memos]);
 
   if (!selectedMemo) {
     return (
-      <div className="p-6 text-gray-600">
-        No memo selected or memo not found.
-      </div>
+      <Box p={3}>
+        <Typography color="textSecondary">No memo selected or memo not found.</Typography>
+      </Box>
     );
   }
 
@@ -47,7 +61,7 @@ const HeadApprove = () => {
     try {
       await axios.put(
         `http://localhost:5000/api/memos/sign/${selectedMemo._id}`,
-        { title, content, digitalSignature },
+        { memo_id,title, content, digitalSignature },
         {
           headers: {
             "Content-Type": "application/json",
@@ -71,12 +85,12 @@ const HeadApprove = () => {
     if (caaMessage.trim() === "") return;
 
     const token = sessionStorage.getItem("token");
-    const memoId = selectedMemo._id;
-    const role = "CAA_Department"; // or set dynamically if needed
+    const memoId = viewId;
+    const role = "CAA_Department";
     const message = caaMessage;
 
     try {
-    await axios.post(
+      await axios.post(
         "http://localhost:5000/api/notifications/create",
         {
           memoId,
@@ -90,7 +104,6 @@ const HeadApprove = () => {
         }
       );
 
-      // Optionally store locally in context
       setCaaNotifications((prev) => [...prev, message]);
       setMessage("CAA has been notified.");
       setCaaMessage("");
@@ -103,89 +116,107 @@ const HeadApprove = () => {
   };
 
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-6 max-w-3xl mx-auto mt-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Approve Memo</h2>
+    <Paper elevation={3} sx={{ p: 4, maxWidth: 700, mx: "auto", mt: 4 }}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom>
+        Approve Memo
+      </Typography>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label className="block text-gray-700 font-semibold mb-1">
-            Title
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          />
-        </div>
+      <Box component="form" onSubmit={handleSubmit} noValidate>
+        <TextField
+                  label="Memo Id"
+                  value={memo_id}
+                  fullWidth
+                  variant="outlined"
+                  required
+                  InputProps={{
+                    readOnly: true,
+                  }}
+                  sx={{ marginBottom: "1.5rem" }}
+                />
+        <TextField
+          fullWidth
+          label="Title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          margin="normal"
+          required
+        />
 
-        <div>
-          <label className="block text-gray-700 font-semibold mb-1">
-            Content
-          </label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            rows="6"
-            className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
-            required
-          ></textarea>
-        </div>
+        <TextField
+          fullWidth
+          multiline
+          rows={6}
+          label="Content"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          margin="normal"
+          required
+        />
 
-        {message && <div className="text-sm text-green-600">{message}</div>}
-
-        {!showSignaturePad && (
-          <button
-            type="button"
-            onClick={handleSignClick}
-            className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
-          >
-            Sign Memo
-          </button>
+        {message && (
+          <Alert severity={message.includes("Error") ? "error" : "success"} sx={{ mt: 2 }}>
+            {message}
+          </Alert>
         )}
 
-        <button
-          type="button"
+        {!showSignaturePad && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSignClick}
+            sx={{ mt: 2 }}
+          >
+            Sign Memo
+          </Button>
+        )}
+
+        <Button
+          variant="text"
+          color="warning"
           onClick={() => setNotifyToCaa(true)}
-          className="ml-4 text-sm text-yellow-600 underline"
+          sx={{ mt: 2, ml: 2 }}
         >
           Send notification to CAA
-        </button>
+        </Button>
 
         {notifyToCaa && (
-          <div className="mt-2">
-            <textarea
+          <Box mt={2}>
+            <TextField
+              fullWidth
+              multiline
+              rows={3}
               value={caaMessage}
               onChange={(e) => setCaaMessage(e.target.value)}
               placeholder="Enter notification message..."
-              className="w-full border border-gray-300 rounded-md px-3 py-2 mt-2"
-              rows="3"
-            ></textarea>
-            <button
-              type="button"
+            />
+            <Button
+              variant="contained"
+              color="warning"
               onClick={handleNotify}
-              className="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition mt-2"
+              sx={{ mt: 1 }}
             >
               Notify CAA
-            </button>
-          </div>
+            </Button>
+          </Box>
         )}
 
         {showSignaturePad && (
           <>
-            <SignaturePad />
-
-            <button
+            <Box mt={4}>
+              <SignaturePad />
+            </Box>
+            <Button
               type="submit"
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition mt-4"
+              variant="contained"
+              color="success"
+              sx={{ mt: 3 }}
             >
               Submit Signed Memo
-            </button>
+            </Button>
           </>
         )}
-      </form>
-    </div>
+      </Box>
+    </Paper>
   );
 };
 

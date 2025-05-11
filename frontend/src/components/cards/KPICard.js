@@ -1,14 +1,39 @@
-// components/KPICard.jsx
+import React from "react";
+import { Card, CardContent, Typography} from "@mui/material";
+
 const KPICard = ({ title, value, icon }) => (
-  <div className="bg-white shadow-md rounded-2xl p-5 flex items-center justify-between">
-    <div>
-      <h3 className="text-gray-500 text-sm">{title}</h3>
-      <p className="text-2xl font-bold text-gray-900">{value}</p>
-    </div>
-    <div className="text-blue-500 text-3xl">
+  <Card
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "space-between",
+      padding: "1.25rem",
+      boxShadow: 3,
+      borderRadius: "16px",
+      backgroundColor: "white",
+      minHeight: "120px",
+    }}
+  >
+    <CardContent sx={{ display: "flex", flexDirection: "column" }}>
+      <Typography variant="body2" color="text.secondary">
+        {title}
+      </Typography>
+      <Typography variant="h5" sx={{ fontWeight: "bold", color: "text.primary" }}>
+        {value}
+      </Typography>
+    </CardContent>
+    <div
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "primary.main",
+        fontSize: "2rem",
+      }}
+    >
       {icon}
     </div>
-  </div>
+  </Card>
 );
 
 export default KPICard;

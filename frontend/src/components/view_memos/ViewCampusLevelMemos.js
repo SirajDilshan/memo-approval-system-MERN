@@ -1,5 +1,14 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import {
+  Box,
+  Typography,
+  Grid,
+  Paper,
+  Button
+} from "@mui/material";
+import GeneratePdfButton from "../generate_pdf/GeneratePdf";
+import GeneratePdf from "../generate_pdf/GeneratePdf";
 
 const ViewCampusLevelMemo = () => {
   const {
@@ -7,135 +16,155 @@ const ViewCampusLevelMemo = () => {
     viewId,
     setSignatureDataURL,
     setActiveView,
-    currentUser
+    currentUser,
   } = useAuth();
 
   const selectedMemo = memos?.find((memo) => memo._id === viewId);
 
-  // Inside HeadApprove component
   useEffect(() => {
-    // Clear previous signature when opening a new memo
     setSignatureDataURL(null);
-  }, [viewId,setSignatureDataURL ]); // Runs when a new memo is selected
+  }, [viewId, setSignatureDataURL]);
 
   if (!selectedMemo) {
     return (
-      <div className="p-6 text-center text-gray-600">
-        No memo selected or memo not found.
-      </div>
+      <Box p={4} textAlign="center">
+        <Typography color="textSecondary">
+          No memo selected or memo not found.
+        </Typography>
+      </Box>
     );
   }
 
- 
-
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-6 max-w-4xl mx-auto mt-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Memo Details</h2>
+    <Box maxWidth="800px" mx="auto" mt={4} p={3} component={Paper} elevation={3}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom>
+        Memo Details
+      </Typography>
 
       {/* Memo Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-        <div>
+      <Grid container spacing={2} sx={{ fontSize: "0.95rem" }}>
+        <Grid item xs={12} sm={6}>
+          <strong>Memo Id:</strong> {selectedMemo.memo_id}
+        </Grid>
+        <Grid item xs={12} sm={6}>
           <strong>Title:</strong> {selectedMemo.title}
-        </div>
-        <div>
+        </Grid>
+        <Grid item xs={12} sm={6}>
           <strong>Status:</strong> {selectedMemo.status}
-        </div>
-        <div>
+        </Grid>
+        <Grid item xs={12} sm={6}>
           <strong>Created By:</strong> {selectedMemo.createdBy?.email} (
           {selectedMemo.createdBy?.role})
-        </div>
-        <div>
+        </Grid>
+        <Grid item xs={12} sm={6}>
           <strong>Created At:</strong>{" "}
           {new Date(selectedMemo.createdAt).toLocaleString()}
-        </div>
-        <div>
+        </Grid>
+        <Grid item xs={12} sm={6}>
           <strong>Updated At:</strong>{" "}
           {new Date(selectedMemo.updatedAt).toLocaleString()}
-        </div>
-        <div>
-          <strong>Faculty Decision:</strong>{" "}
-          {selectedMemo.facultyBoardDecision || "Pending"}
-        </div>
-        <div>
+        </Grid>
+        <Grid item xs={12} sm={6}>
           <strong>Campus Decision:</strong>{" "}
           {selectedMemo.campusBoardDecision || "Pending"}
-        </div>
-      </div>
+        </Grid>
+      </Grid>
 
       {/* Content */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Content</h3>
-        <p className="bg-gray-50 p-4 rounded-md text-gray-800 leading-relaxed whitespace-pre-wrap">
-          {selectedMemo.content}
-        </p>
-      </div>
+      <Box mt={4}>
+        <Typography variant="h6" gutterBottom>
+          Content
+        </Typography>
+        <Box
+          bgcolor="#f5f5f5"
+          p={2}
+          borderRadius={1}
+          sx={{ whiteSpace: "pre-wrap" }}
+        >
+          <Typography>{selectedMemo.content}</Typography>
+        </Box>
+      </Box>
 
-      {/* Approval History (with signature, roles, timestamps) */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2 text-gray-800">
+      {/* Approval History */}
+      <Box mt={4}>
+        <Typography variant="h6" gutterBottom>
           Approval History
-        </h3>
+        </Typography>
         {selectedMemo.approvals && selectedMemo.approvals.length > 0 ? (
-          <ul className="space-y-4 text-sm text-gray-700">
+          <Box display="flex" flexDirection="column" gap={2}>
             {selectedMemo.approvals.map((approval, index) => (
-              <li
-                key={index}
-                className="p-3 border rounded-md shadow-sm bg-gray-50"
-              >
-                <div>
+              <Paper key={index} variant="outlined" sx={{ p: 2 }}>
+                <Typography>
                   <strong>Role:</strong> {approval.role}
-                </div>
-                <div>
-                  <strong>Approved By:</strong> {approval.approvedBy}
-                </div>
-                <div>
+                </Typography>
+                <Typography>
                   <strong>Date:</strong>{" "}
                   {new Date(approval.timestamp).toLocaleString()}
-                </div>
+                </Typography>
                 {approval.digitalSignature && (
-                  <div className="mt-2">
-                    <strong>Digital Signature:</strong>
+                  <Box mt={1}>
+                    <Typography>
+                      <strong>Signature:</strong>
+                    </Typography>
                     <img
                       src={approval.digitalSignature}
                       alt="Digital Signature"
-                      className="mt-1 border rounded w-48"
+                      style={{ marginTop: 8, border: "1px solid #ccc", borderRadius: 4, width: 192 }}
                     />
-                  </div>
+                  </Box>
                 )}
-              </li>
+              </Paper>
             ))}
-          </ul>
+          </Box>
         ) : (
-          <p className="text-gray-500">No approvals yet.</p>
+          <Typography color="textSecondary">No approvals yet.</Typography>
         )}
-      </div>
-    
-    
-     {currentUser === 'AR_Faculty' && (
- <button
- onClick={() => setActiveView("campuslevelmemos")}
- className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
->
- OK
-</button>
-     )}
-      {currentUser === 'Dean_Faculty' && (
- <button
- onClick={() => setActiveView("deanallmemos")}
- className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
->
- OK
-</button>
-     )}
-           {currentUser === 'AR_Campus' && (
- <button
- onClick={() => setActiveView("arcampusmemos")}
- className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
->
- OK
-</button>
-     )}
-    </div>
+      </Box>
+
+      {/* Conditional Buttons */}
+      <Box mt={4}>
+        {currentUser === "AR_Faculty" && (
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => setActiveView("campuslevelmemos")}
+          >
+            OK
+          </Button>
+        )}
+        {currentUser === "Dean_Faculty" && (
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => setActiveView("deanallmemos")}
+          >
+            OK
+          </Button>
+        )}
+        {currentUser === "AR_Campus" && (
+          <>
+          <GeneratePdf />
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => setActiveView("arcampusmemos")}
+          >
+            OK
+          </Button>
+          </>
+          
+        )}
+        {currentUser === "CAA_Faculty" && (
+          <Button
+            variant="contained"
+            color="success"
+            onClick={() => setActiveView("allMemosFacultycaa")}
+          >
+            OK
+          </Button>
+        )}
+      </Box>
+    </Box>
   );
 };
 

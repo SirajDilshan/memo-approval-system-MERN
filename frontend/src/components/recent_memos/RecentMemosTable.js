@@ -1,16 +1,25 @@
 import { useState, useMemo } from 'react';
+import {
+  Box,
+  Button,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography
+} from '@mui/material';
 
 const RecentMemosTable = ({ memos }) => {
   const [showOnlyPending, setShowOnlyPending] = useState(false);
 
-  // Filter memos created by CAA_Department
   const caaMemos = useMemo(
-    () =>
-      memos.filter((memo) => memo.createdBy?.role === 'CAA_Department'),
+    () => memos.filter((memo) => memo.createdBy?.role === 'CAA_Department'),
     [memos]
   );
 
-  // Further filter by status if needed
   const filteredMemos = useMemo(() => {
     return showOnlyPending
       ? caaMemos.filter((memo) => memo.status.toLowerCase() === 'pending')
@@ -18,49 +27,57 @@ const RecentMemosTable = ({ memos }) => {
   }, [caaMemos, showOnlyPending]);
 
   return (
-    <div className="overflow-x-auto bg-white shadow-md rounded-2xl p-5 mt-6">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Recent Memos</h2>
-        <button
-          onClick={() => setShowOnlyPending(!showOnlyPending)}
-          className="px-4 py-2 text-sm rounded-lg border border-gray-300 bg-gray-100 hover:bg-gray-200"
-        >
-          {showOnlyPending ? 'Show All' : 'Show Only Pending'}
-        </button>
-      </div>
-      <table className="min-w-full table-auto">
-        <thead>
-          <tr className="bg-gray-100 text-left">
-            <th className="p-2">Memo Title</th>
-            <th className="p-2">Submitted By</th>
-            <th className="p-2">Status</th>
-            <th className="p-2">Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredMemos.length === 0 ? (
-            <tr>
-              <td colSpan="4" className="text-center p-4 text-gray-500">
-                No memos found.
-              </td>
-            </tr>
-          ) : (
-            filteredMemos.map((memo, idx) => (
-              <tr key={idx} className="border-t">
-                <td className="p-2">{memo.title}</td>
-                <td className="p-2">
-                  {memo.createdBy?.email} ({memo.createdBy?.role})
-                </td>
-                <td className="p-2">{memo.status}</td>
-                <td className="p-2">
-                  {new Date(memo.createdAt).toLocaleDateString()}
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
+    <Box mt={4}>
+      <Paper elevation={3} sx={{ padding: 3, borderRadius: 2 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6" fontWeight="bold">
+            Recent Memos
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={() => setShowOnlyPending(!showOnlyPending)}
+          >
+            {showOnlyPending ? 'Show All' : 'Show Only Pending'}
+          </Button>
+        </Box>
+        <TableContainer>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Memo Id</TableCell>
+                <TableCell>Memo Title</TableCell>
+                <TableCell>Submitted By</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Date</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredMemos.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={4} align="center">
+                    No memos found.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredMemos.map((memo, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell>{memo.memo_id}</TableCell>
+                    <TableCell>{memo.title}</TableCell>
+                    <TableCell>
+                      {memo.createdBy?.email} ({memo.createdBy?.role})
+                    </TableCell>
+                    <TableCell>{memo.status}</TableCell>
+                    <TableCell>
+                      {new Date(memo.createdAt).toLocaleDateString()}
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
+    </Box>
   );
 };
 

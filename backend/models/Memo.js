@@ -8,10 +8,11 @@ const approvalSchema = new mongoose.Schema({
 });
 
 const memoSchema = new mongoose.Schema({
+  memo_id: {type: String, required: true},
   title: { type: String, required: true, trim: true },
   content: { type: String, required: true },
   status: { 
-    type: String, 
+    type: String,
     enum: [
       "Pending", "Approved by Head", "Approved by AR", "Approved by Faculty AR",
       "Faculty Board Decision: Accepted", "Approved by Dean", "Approved by AR Campus", 
@@ -20,7 +21,7 @@ const memoSchema = new mongoose.Schema({
     default: "Pending"
   },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true},
-  approvals: [approvalSchema], // Store all approvals
+  approvals: [approvalSchema],
   facultyBoardDecision: { type: String, enum: ["Accepted", "Rejected"], default: null },
   campusBoardDecision: { type: String, enum: ["Accepted", "Rejected"], default: null },
   createdAt: { type: Date, default: Date.now },

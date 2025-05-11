@@ -1,17 +1,22 @@
-import React, { useRef, useState } from "react";
+import React, { useRef } from "react";
 import SignatureCanvas from "react-signature-canvas";
 import { useAuth } from "../../context/AuthContext";
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Stack,
+} from "@mui/material";
 
 const SignaturePad = () => {
   const sigCanvas = useRef(null);
-  const [isSigned, setIsSigned] = useState(false);
   const { signatureDataURL, setSignatureDataURL } = useAuth();
 
   const clearSignature = () => {
     if (sigCanvas.current) {
       sigCanvas.current.clear();
     }
-    setIsSigned(false);
     setSignatureDataURL(null);
   };
 
@@ -25,58 +30,87 @@ const SignaturePad = () => {
   };
 
   return (
-    <div className="p-4 bg-white rounded shadow-lg w-full max-w-md mx-auto">
-      <h2 className="text-lg font-semibold mb-4 text-center">Sign Below</h2>
+    <Box
+      component={Paper}
+      elevation={3}
+      sx={{
+        p: 3,
+        width: "100%",
+        maxWidth: 500,
+        mx: "auto",
+        mt: 2,
+      }}
+    >
+      <Typography variant="h6" align="center" gutterBottom>
+        Sign Below
+      </Typography>
 
       {!signatureDataURL && (
         <>
-          <div className="border border-gray-300 rounded">
+          <Box
+            sx={{
+              border: "1px solid #ccc",
+              borderRadius: 2,
+              overflow: "hidden",
+              mb: 2,
+            }}
+          >
             <SignatureCanvas
               penColor="black"
               canvasProps={{
                 width: 400,
                 height: 200,
-                className: "bg-white rounded",
+                className: "sigCanvas",
               }}
               ref={sigCanvas}
-              onEnd={() => setIsSigned(true)}
             />
-          </div>
+          </Box>
 
-          <div className="flex justify-between mt-4">
-            <button
+          <Stack direction="row" justifyContent="space-between" spacing={2}>
+            <Button
+              variant="outlined"
+              color="secondary"
               onClick={clearSignature}
-              className="bg-gray-200 text-sm px-4 py-1 rounded hover:bg-gray-300"
             >
               Clear
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="contained"
+              color="primary"
               onClick={saveSignature}
-              className="bg-blue-600 text-white text-sm px-4 py-1 rounded hover:bg-blue-700"
             >
               Save Signature
-            </button>
-          </div>
+            </Button>
+          </Stack>
         </>
       )}
 
       {signatureDataURL && (
-        <div className="text-center mt-4">
-          <p className="mb-2 text-green-600 font-medium">Signature Saved:</p>
-          <img
+        <Box textAlign="center" mt={2}>
+          <Typography color="success.main" gutterBottom>
+            Signature Saved:
+          </Typography>
+          <Box
+            component="img"
             src={signatureDataURL}
             alt="Saved Signature"
-            className="mx-auto border border-gray-400 rounded"
+            sx={{
+              border: "1px solid #aaa",
+              borderRadius: 1,
+              maxWidth: "100%",
+            }}
           />
-          <button
+          <Button
+            variant="contained"
+            color="error"
+            sx={{ mt: 2 }}
             onClick={clearSignature}
-            className="mt-4 bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600"
           >
             Sign Again
-          </button>
-        </div>
+          </Button>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };
 

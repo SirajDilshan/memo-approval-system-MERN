@@ -18,17 +18,27 @@ exports.getAllMemos = async (req, res) => {
 // Create Memo (Only CAA of the Department & CAA of the Faculty)
 exports.createMemo = async (req, res) => {
   try {
-    const { title, content } = req.body;
+    const {memo_id, title, content } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ message: "Title and content are required" });
+    }
+
+    if (!memo_id) {
+      return res.status(400).json({ message: "id required" });
     }
 
     if (!["CAA_Department", "CAA_Faculty"].includes(req.user.role)) {
       return res.status(403).json({ message: "Access denied. Only CAA can create memos." });
     }
 
+    const existingMemo = await Memo.findOne({ memo_id });
+
+    if (existingMemo) {
+      return res.status(400).json({ message: "memo_id already exists." });
+    }
     const newMemo = await Memo.create({
+      memo_id,
       title,
       content,
       createdBy: req.user.id,
@@ -125,7 +135,7 @@ exports.signARMemo = async (req, res) => {
 exports.signDeanMemo = async (req, res) => {
   try {
     const { memoId } = req.params;
-    const { digitalSignature, title, content } = req.body;
+    const { digitalSignature, title, content , memo_id} = req.body;
 
     const memo = await Memo.findById(memoId);
     if (!memo) return res.status(404).json({ message: "Memo not found" });
@@ -143,6 +153,7 @@ exports.signDeanMemo = async (req, res) => {
       role: req.user.role,
       approvedBy: req.user.id,
       digitalSignature: digitalSignature,
+      memo_id: memo_id || memo.memo_id,
       title: title || memo.title,
       content: content || memo.content,
       timestamp: Date.now()
@@ -166,7 +177,7 @@ exports.signDeanMemo = async (req, res) => {
 exports.signMemoAR = async (req, res) => {
   try {
     const { memoId } = req.params;
-    const { digitalSignature, title, content } = req.body;
+    const { digitalSignature, title, content , memo_id} = req.body;
 
     const memo = await Memo.findById(memoId);
     if (!memo) return res.status(404).json({ message: "Memo not found" });
@@ -184,6 +195,7 @@ exports.signMemoAR = async (req, res) => {
       role: req.user.role,
       approvedBy: req.user.id,
       digitalSignature: digitalSignature,
+      memo_id: memo_id || memo.memo_id,
       title: title || memo.title,
       content: content || memo.content,
       timestamp: Date.now()
@@ -208,7 +220,7 @@ exports.signMemoAR = async (req, res) => {
 exports.signMemo = async (req, res) => {
   try {
     const { memoId } = req.params;
-    const { digitalSignature, title, content } = req.body;
+    const { digitalSignature, title, content , memo_id } = req.body;
 
     const memo = await Memo.findById(memoId);
     if (!memo) return res.status(404).json({ message: "Memo not found" });
@@ -226,6 +238,7 @@ exports.signMemo = async (req, res) => {
       role: req.user.role,
       approvedBy: req.user.id,
       digitalSignature: digitalSignature,
+      memo_id: memo_id || memo.memo_id,
       title: title || memo.title,
       content: content || memo.content,
       timestamp: Date.now()
@@ -251,7 +264,7 @@ exports.signMemo = async (req, res) => {
 exports.editMemo = async (req, res) => {
   try {
     const { memoId } = req.params;
-    const { title, content } = req.body;
+    const {memo_id,  title, content } = req.body;
 
     const memo = await Memo.findById(memoId);
     if (!memo) return res.status(404).json({ message: "Memo not found" });
@@ -259,7 +272,7 @@ exports.editMemo = async (req, res) => {
     if (req.user.id.toString() !== memo.createdBy.toString()) {
       return res.status(403).json({ message: "Not authorized to edit this memo" });
     }
-
+    memo.memo_id = memo_id || memo.memo_id;
     memo.title = title || memo.title;
     memo.content = content || memo.content;
     memo.updatedAt = Date.now();
@@ -410,6 +423,7 @@ exports.getMemoStatus = async (req, res) => {
     if (!memo) return res.status(404).json({ message: "Memo not found" });
 
     res.json({
+      memo_id: memo.memo_id,
       title: memo.title,
       content: memo.content,
       status: memo.status,

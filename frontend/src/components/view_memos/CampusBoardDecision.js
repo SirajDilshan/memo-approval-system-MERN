@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Button, CircularProgress } from '@mui/material';
+import Paper from '@mui/material/Paper';
 
 const CampusBoardDecision = () => {
   const [loading, setLoading] = useState(true);
@@ -21,7 +23,7 @@ const CampusBoardDecision = () => {
         );
         setMemos(response.data);
 
-        // Filter memos where status is "Approved by Head"
+        // Filter memos where status is "Approved by AR Campus"
         const filtered = response.data.filter(
           (memo) => memo.status === "Approved by AR Campus"
         );
@@ -41,87 +43,77 @@ const CampusBoardDecision = () => {
       case "Finalized":
       case "Approved":
       case "Approved by Head":
-        return "text-green-600 font-semibold";
+        return "green";
       case "Rejected":
-        return "text-red-600 font-semibold";
+        return "red";
       case "Pending":
       case "Under Review":
-        return "text-yellow-600 font-semibold";
+        return "yellow";
       default:
-        return "text-gray-600";
+        return "gray";
     }
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">
-        Set Campus Board Decision
-      </h2>
-      <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
-        <table className="min-w-full text-sm text-left text-gray-700">
-          <thead className="bg-gray-100 text-xs uppercase tracking-wider text-gray-600">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Created By</th>
-              <th className="px-4 py-3">Campus Decision</th>
-              <th className="px-4 py-3">Created At</th>
-              <th className="px-4 py-3">Updated At</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+    <div style={{ padding: "20px" }}>
+      <h2 style={{ fontSize: "24px", fontWeight: "bold", marginBottom: "20px" }}>Set Campus Board Decision</h2>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Memo Id</TableCell>
+              <TableCell>Title</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Created By</TableCell>
+              <TableCell>Campus Decision</TableCell>
+              <TableCell>Created At</TableCell>
+              <TableCell>Updated At</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {loading ? (
-              <tr>
-                <td colSpan="9" className="text-center px-4 py-6 text-gray-500">
-                  Loading memos...
-                </td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
             ) : approvedMemos.length === 0 ? (
-              <tr>
-                <td colSpan="9" className="text-center px-4 py-6 text-gray-500">
+              <TableRow>
+                <TableCell colSpan={7} align="center">
                   No memos approved by the campus AR yet.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               approvedMemos.map((memo) => (
-                <tr
-                  key={memo._id}
-                  className="border-t hover:bg-gray-50 transition"
-                >
-                  <td className="px-4 py-3">{memo.title}</td>
-                  <td className={`px-4 py-3 ${getStatusColor(memo.status)}`}>
+                <TableRow key={memo._id}>
+                  <TableCell>{memo.memo_id}</TableCell>
+                  <TableCell>{memo.title}</TableCell>
+                  <TableCell style={{ color: getStatusColor(memo.status) }}>
                     {memo.status}
-                  </td>
-                  <td className="px-4 py-3">
-                    {memo.createdBy?.email} ({memo.createdBy?.role})
-                  </td>
-                  <td className="px-4 py-3">
-                    {memo.campusBoardDecision || "N/A"}
-                  </td>
-                  <td className="px-4 py-3">
-                    {new Date(memo.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    {new Date(memo.updatedAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    <button
+                  </TableCell>
+                  <TableCell>{memo.createdBy?.email} ({memo.createdBy?.role})</TableCell>
+                  <TableCell>{memo.campusBoardDecision || "N/A"}</TableCell>
+                  <TableCell>{new Date(memo.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(memo.updatedAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="contained"
+                      color="primary"
                       onClick={() => {
                         setViewId(memo._id);
                         setActiveView("arcampusdecision");
                       }}
-                      className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 transition duration-200"
                     >
                       Set Decision
-                    </button>
-                  </td>
-                </tr>
+                    </Button>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
+          </TableBody>
+        </Table>
+      </TableContainer>
     </div>
   );
 };

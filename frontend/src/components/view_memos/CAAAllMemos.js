@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import { Button, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography, Box } from "@mui/material";
 
 const CAAAllMemos = () => {
   const [loading, setLoading] = useState(true);
@@ -31,14 +32,14 @@ const CAAAllMemos = () => {
     switch (status) {
       case "Finalized":
       case "Approved":
-        return "text-green-600 font-semibold";
+        return "green";
       case "Rejected":
-        return "text-red-600 font-semibold";
+        return "red";
       case "Pending":
       case "Under Review":
-        return "text-yellow-600 font-semibold";
+        return "yellow";
       default:
-        return "text-gray-600";
+        return "gray";
     }
   };
 
@@ -49,111 +50,100 @@ const CAAAllMemos = () => {
   });
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-2 text-gray-800">All Created Memos</h2>
+    <Box sx={{ padding: 3 }}>
+      <Typography variant="h5" sx={{ fontWeight: 600, marginBottom: 2 }}>
+        All Created Memos
+      </Typography>
 
       {/* Toggle Filter Buttons */}
-      <div className="mb-4 flex gap-3">
-        <button
-          className={`px-4 py-1 rounded-md text-sm font-medium ${
-            filterMode === "all" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
-          }`}
-          onClick={() => setFilterMode("all")}
-        >
-          All
-        </button>
-        <button
-          className={`px-4 py-1 rounded-md text-sm font-medium ${
-            filterMode === "editable" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
-          }`}
-          onClick={() => setFilterMode("editable")}
-        >
-          Editable
-        </button>
-        <button
-          className={`px-4 py-1 rounded-md text-sm font-medium ${
-            filterMode === "viewOnly" ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-800"
-          }`}
-          onClick={() => setFilterMode("viewOnly")}
-        >
-          View Only
-        </button>
-      </div>
+      <Box sx={{ marginBottom: 3 }}>
+        {["all", "editable", "viewOnly"].map((mode) => (
+          <Button
+            key={mode}
+            onClick={() => setFilterMode(mode)}
+            variant={filterMode === mode ? "contained" : "outlined"}
+            color={filterMode === mode ? "primary" : "default"}
+            sx={{ marginRight: 2 }}
+          >
+            {mode.charAt(0).toUpperCase() + mode.slice(1)}
+          </Button>
+        ))}
+      </Box>
 
       {/* Memo Table */}
-      <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
-        <table className="min-w-full text-sm text-left text-gray-700">
-          <thead className="bg-gray-100 text-xs uppercase tracking-wider text-gray-600">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Created By</th>
-              <th className="px-4 py-3">Campus Decision</th>
-              <th className="px-4 py-3">Created At</th>
-              <th className="px-4 py-3">Updated At</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <TableContainer sx={{ boxShadow: 3, borderRadius: 1 }}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell sx={{ fontWeight: "bold" }}>Memo Id</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Title</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Status</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Created By</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Campus Decision</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Created At</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Updated At</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {loading ? (
-              <tr>
-                <td colSpan="7" className="text-center px-4 py-6 text-gray-500">
-                  Loading memos...
-                </td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
             ) : filteredMemos.length === 0 ? (
-              <tr>
-                <td colSpan="7" className="text-center px-4 py-6 text-gray-500">
+              <TableRow>
+                <TableCell colSpan={7} align="center" sx={{ color: "gray" }}>
                   No memos found.
-                </td>
-              </tr>
+                </TableCell>
+              </TableRow>
             ) : (
               filteredMemos.map((memo) => (
-                <tr key={memo._id} className="border-t hover:bg-gray-50 transition">
-                  <td className="px-4 py-3">{memo.title}</td>
-                  <td className={`px-4 py-3 ${getStatusColor(memo.status)}`}>
+                <TableRow key={memo._id} sx={{ "&:hover": { backgroundColor: "#f5f5f5" } }}>
+                  <TableCell>{memo.memo_id}</TableCell>
+                  <TableCell>{memo.title}</TableCell>
+                  <TableCell sx={{ color: getStatusColor(memo.status), fontWeight: "bold" }}>
                     {memo.status}
-                  </td>
-                  <td className="px-4 py-3">
-                    {memo.createdBy?.email} ({memo.createdBy?.role})
-                  </td>
-                  <td className="px-4 py-3">{memo.campusBoardDecision || "N/A"}</td>
-                  <td className="px-4 py-3">
-                    {new Date(memo.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    {new Date(memo.updatedAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>{memo.createdBy?.email} ({memo.createdBy?.role})</TableCell>
+                  <TableCell>{memo.campusBoardDecision || "N/A"}</TableCell>
+                  <TableCell>{new Date(memo.createdAt).toLocaleDateString()}</TableCell>
+                  <TableCell>{new Date(memo.updatedAt).toLocaleDateString()}</TableCell>
+                  <TableCell>
                     {memo.status === "Pending" ? (
-                      <button
+                      <Button
                         onClick={() => {
                           setViewId(memo._id);
                           setActiveView("caaeditmemo");
                         }}
-                        className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition"
+                        variant="contained"
+                        color="primary"
+                        size="small"
                       >
                         Edit
-                      </button>
+                      </Button>
                     ) : (
-                      <button
+                      <Button
                         onClick={() => {
                           setViewId(memo._id);
                           setActiveView("viewcampuslevelmemo");
                         }}
-                        className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-green-700 transition"
+                        variant="outlined"
+                        color="success"
+                        size="small"
                       >
                         View
-                      </button>
+                      </Button>
                     )}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 };
 

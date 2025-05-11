@@ -1,27 +1,45 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography,
+  Paper,
+} from "@mui/material";
 
 const CampusLevelMemos = () => {
   const [loading, setLoading] = useState(true);
-  const { setActiveView, memos, setMemos, setViewId } = useAuth();
+  const { setActiveView, setMemos, setViewId } = useAuth();
+  const [allMemos, setAllMemos] = useState([]);
+  const [filteredMemos, setFilteredMemos] = useState([]);
+  const [filterType, setFilterType] = useState("All");
 
   useEffect(() => {
     const fetchMemos = async () => {
       try {
         const token = sessionStorage.getItem("token");
-        const response = await axios.get(
-          "http://localhost:5000/api/memos/all",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        const filtered = response.data.filter(
+        const response = await axios.get("http://localhost:5000/api/memos/all", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        setMemos(response.data);
+
+        const caaFacultyMemos = response.data.filter(
           (memo) => memo.createdBy?.role === "CAA_Faculty"
         );
-        setMemos(filtered);
+
+        setAllMemos(caaFacultyMemos);
+        setFilteredMemos(caaFacultyMemos); // Initially show all
       } catch (error) {
         console.error("Error fetching memos:", error);
       } finally {
@@ -32,105 +50,128 @@ const CampusLevelMemos = () => {
     fetchMemos();
   }, [setMemos]);
 
+  // Handle filter button clicks
+  const handleFilterChange = (type) => {
+    setFilterType(type);
+    if (type === "All") {
+      setFilteredMemos(allMemos);
+    } else if (type === "Sign") {
+      setFilteredMemos(allMemos.filter(memo => memo.status === "Pending"));
+    } else if (type === "View Only") {
+      setFilteredMemos(allMemos.filter(memo => memo.status !== "Pending"));
+    }
+  };
+
   const getStatusColor = (status) => {
     switch (status) {
       case "Finalized":
       case "Approved":
-        return "text-green-600 font-semibold";
+      case "Approved by Head":
+      case "Approved by Faculty AR":
+        return "green";
       case "Rejected":
-        return "text-red-600 font-semibold";
+        return "red";
       case "Pending":
       case "Under Review":
-        return "text-yellow-600 font-semibold";
+        return "yellow";
       default:
-        return "text-gray-600";
+        return "gray";
     }
   };
 
-  
-
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 text-gray-800">All Memos</h2>
-      <div className="overflow-x-auto shadow-lg rounded-lg bg-white">
-        <table className="min-w-full text-sm text-left text-gray-700">
-          <thead className="bg-gray-100 text-xs uppercase tracking-wider text-gray-600">
-            <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3">Created By</th>
-              <th className="px-4 py-3">Campus Decision</th>
-              <th className="px-4 py-3">Created At</th>
-              <th className="px-4 py-3">Updated At</th>
-              <th className="px-4 py-3">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+    <Box p={6}>
+      <Typography variant="h5" fontWeight="bold" mb={4}>
+        Memos Created by CAA Faculty
+      </Typography>
+
+      {/* Filter Buttons */}
+      <Box mb={4} display="flex" gap={2}>
+        {["All", "Sign", "View Only"].map((type) => (
+          <Button
+            key={type}
+            onClick={() => handleFilterChange(type)}
+            variant={filterType === type ? "contained" : "outlined"}
+            color={filterType === type ? "primary" : "default"}
+          >
+            {type}
+          </Button>
+        ))}
+      </Box>
+
+      <TableContainer component={Paper} sx={{ boxShadow: 3 }}>
+        <Table aria-label="campus level memos">
+          <TableHead>
+            <TableRow>
+              <TableCell>Memo Id</TableCell>
+              <TableCell>Title</TableCell>
+              <TableCell>Status</TableCell>
+              <TableCell>Created By</TableCell>
+              <TableCell>Campus Decision</TableCell>
+              <TableCell>Created At</TableCell>
+              <TableCell>Updated At</TableCell>
+              <TableCell>Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
             {loading ? (
-              <tr>
-                <td colSpan="9" className="text-center px-4 py-6 text-gray-500">
-                  Loading memos...
-                </td>
-              </tr>
-            ) : memos.length === 0 ? (
-              <tr>
-                <td colSpan="9" className="text-center px-4 py-6 text-gray-500">
-                  No memos found.
-                </td>
-              </tr>
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  <CircularProgress />
+                </TableCell>
+              </TableRow>
+            ) : filteredMemos.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} align="center">
+                  No memos found for the selected filter.
+                </TableCell>
+              </TableRow>
             ) : (
-              memos.map((memo) => (
-                <tr
-                  key={memo._id}
-                  className="border-t hover:bg-gray-50 transition"
-                >
-                  <td className="px-4 py-3">{memo.title}</td>
-                  <td className={`px-4 py-3 ${getStatusColor(memo.status)}`}>
+              filteredMemos.map((memo) => (
+                <TableRow key={memo._id}>
+                  <TableCell>{memo.memo_id}</TableCell>
+                  <TableCell>{memo.title}</TableCell>
+                  <TableCell
+                    sx={{
+                      color: getStatusColor(memo.status),
+                      fontWeight: "bold",
+                    }}
+                  >
                     {memo.status}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     {memo.createdBy?.email} ({memo.createdBy?.role})
-                  </td>
-             
-                  <td className="px-4 py-3">
-                    {memo.campusBoardDecision || "N/A"}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>{memo.campusBoardDecision || "N/A"}</TableCell>
+                  <TableCell>
                     {new Date(memo.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     {new Date(memo.updatedAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3">
-                    {memo.status === "Pending" ? (
-                      <button
-                        onClick={() => {
-                          setViewId(memo._id);
-                          setActiveView("EditMemoFaculty");
-                        }}
-                        className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition duration-200"
-                      >
-                        Edit
-                      </button>
-                    ) : (
-                      <button
-                        className="bg-green-600 text-white px-3 py-1 rounded-lg text-sm hover:bg-blue-700 transition duration-200"
-                        onClick={() => {
-                          setViewId(memo._id);
-                          setActiveView("viewcampuslevelmemo");
-                        }}
-                      >
-                        View
-                      </button>
-                    )}
-                  </td>
-                </tr>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      onClick={() => {
+                        setViewId(memo._id);
+                        setActiveView(
+                          memo.status === "Pending"
+                            ? "EditMemoFaculty"
+                            : "viewcampuslevelmemo"
+                        );
+                      }}
+                      variant="contained"
+                      color={memo.status === "Pending" ? "success" : "primary"}
+                    >
+                      {memo.status === "Pending" ? "Sign" : "View"}
+                    </Button>
+                  </TableCell>
+                </TableRow>
               ))
             )}
-          </tbody>
-        </table>
-      </div>
-    </div>
+          </TableBody>
+        </Table>
+      </TableContainer>
+    </Box>
   );
 };
 

@@ -1,155 +1,131 @@
 import React, { useEffect } from "react";
-import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
-import SignaturePad from "../sign_decision/SignaturePad";
+import {
+  Box,
+  Typography,
+  Grid,
+  Paper,
+  Button,
+  Avatar,
+} from "@mui/material";
 
 const ViewARSigned = () => {
   const {
     memos,
     viewId,
-    currentUser,
-    signatureDataURL,
     setSignatureDataURL,
-    setMemos,
     setActiveView,
   } = useAuth();
 
   const selectedMemo = memos?.find((memo) => memo._id === viewId);
 
-  // Inside HeadApprove component
   useEffect(() => {
-    // Clear previous signature when opening a new memo
-    setSignatureDataURL(null);
-  }, [viewId,setSignatureDataURL]); // Runs when a new memo is selected
+    setSignatureDataURL(null); // Clear signature when a new memo is selected
+  }, [viewId, setSignatureDataURL]);
 
   if (!selectedMemo) {
     return (
-      <div className="p-6 text-center text-gray-600">
-        No memo selected or memo not found.
-      </div>
+      <Box p={4} textAlign="center">
+        <Typography color="text.secondary">No memo selected or memo not found.</Typography>
+      </Box>
     );
   }
 
-  const handleApprove = async () => {
-    if (!signatureDataURL) {
-      alert("Please sign before approving the memo.");
-      return;
-    }
-
-    try {
-      const token = sessionStorage.getItem("token");
-      const response = await axios.put(
-        `http://localhost:5000/api/memos/signDean/${selectedMemo._id}`,
-        { digitalSignature: signatureDataURL },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      // Update local memo state
-      setMemos((prev) =>
-        prev.map((memo) =>
-          memo._id === selectedMemo._id ? response.data : memo
-        )
-      );
-
-      alert("Memo approved successfully!");
-      setActiveView("deanallmemos");
-    } catch (error) {
-      console.error("Error approving memo:", error);
-      alert("An error occurred while approving the memo.");
-    }
-  };
 
   return (
-    <div className="bg-white shadow-lg rounded-2xl p-6 max-w-4xl mx-auto mt-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-4">Memo Details</h2>
+    <Paper elevation={3} sx={{ p: 4, maxWidth: 900, mx: "auto", mt: 6 }}>
+      <Typography variant="h5" fontWeight="bold" gutterBottom>
+        Memo Details
+      </Typography>
 
       {/* Memo Info */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-700">
-        <div>
-          <strong>Title:</strong> {selectedMemo.title}
-        </div>
-        <div>
-          <strong>Status:</strong> {selectedMemo.status}
-        </div>
-        <div>
-          <strong>Created By:</strong> {selectedMemo.createdBy?.email} (
-          {selectedMemo.createdBy?.role})
-        </div>
-        <div>
-          <strong>Created At:</strong>{" "}
-          {new Date(selectedMemo.createdAt).toLocaleString()}
-        </div>
-        <div>
-          <strong>Updated At:</strong>{" "}
-          {new Date(selectedMemo.updatedAt).toLocaleString()}
-        </div>
-        
-        <div>
-          <strong>Campus Decision:</strong>{" "}
-          {selectedMemo.campusBoardDecision || "Pending"}
-        </div>
-      </div>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
+        <Grid item xs={12} sm={6}>
+          <Typography><strong>Memo Id:</strong> {selectedMemo.memo_id}</Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography><strong>Title:</strong> {selectedMemo.title}</Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography><strong>Status:</strong> {selectedMemo.status}</Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography>
+            <strong>Created By:</strong> {selectedMemo.createdBy?.email} ({selectedMemo.createdBy?.role})
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography>
+            <strong>Created At:</strong> {new Date(selectedMemo.createdAt).toLocaleString()}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography>
+            <strong>Updated At:</strong> {new Date(selectedMemo.updatedAt).toLocaleString()}
+          </Typography>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Typography>
+            <strong>Campus Decision:</strong> {selectedMemo.campusBoardDecision || "Pending"}
+          </Typography>
+        </Grid>
+      </Grid>
 
-      {/* Content */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Content</h3>
-        <p className="bg-gray-50 p-4 rounded-md text-gray-800 leading-relaxed whitespace-pre-wrap">
-          {selectedMemo.content}
-        </p>
-      </div>
+      {/* Memo Content */}
+      <Box mb={4}>
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
+          Content
+        </Typography>
+        <Paper variant="outlined" sx={{ p: 2, whiteSpace: "pre-wrap" }}>
+          <Typography>{selectedMemo.content}</Typography>
+        </Paper>
+      </Box>
 
-      {/* Approval History (with signature, roles, timestamps) */}
-      <div className="mt-6">
-        <h3 className="text-lg font-semibold mb-2 text-gray-800">
+      {/* Approval History */}
+      <Box>
+        <Typography variant="h6" fontWeight="bold" gutterBottom>
           Approval History
-        </h3>
+        </Typography>
         {selectedMemo.approvals && selectedMemo.approvals.length > 0 ? (
-          <ul className="space-y-4 text-sm text-gray-700">
-            {selectedMemo.approvals.map((approval, index) => (
-              <li
-                key={index}
-                className="p-3 border rounded-md shadow-sm bg-gray-50"
-              >
-                <div>
-                  <strong>Role:</strong> {approval.role}
-                </div>
-                <div>
-                  <strong>Approved By:</strong> {approval.approvedBy}
-                </div>
-                <div>
-                  <strong>Date:</strong>{" "}
-                  {new Date(approval.timestamp).toLocaleString()}
-                </div>
-                {approval.digitalSignature && (
-                  <div className="mt-2">
-                    <strong>Digital Signature:</strong>
-                    <img
-                      src={approval.digitalSignature}
-                      alt="Digital Signature"
-                      className="mt-1 border rounded w-48"
-                    />
-                  </div>
-                )}
-              </li>
-            ))}
-          </ul>
+          selectedMemo.approvals.map((approval, index) => (
+            <Paper
+              key={index}
+              variant="outlined"
+              sx={{ p: 2, mb: 2, backgroundColor: "#f9f9f9" }}
+            >
+              <Typography><strong>Role:</strong> {approval.role}</Typography>
+              <Typography>
+                <strong>Date:</strong> {new Date(approval.timestamp).toLocaleString()}
+              </Typography>
+              {approval.digitalSignature && (
+                <Box mt={2}>
+                  <Typography><strong>Signature:</strong></Typography>
+                  <Avatar
+                    src={approval.digitalSignature}
+                    alt="Digital Signature"
+                    variant="square"
+                    sx={{ width: 200, height: "auto", mt: 1 }}
+                  />
+                </Box>
+              )}
+            </Paper>
+          ))
         ) : (
-          <p className="text-gray-500">No approvals yet.</p>
+          <Typography color="text.secondary">No approvals yet.</Typography>
         )}
-      </div>
+      </Box>
 
-      <button
-        onClick={() => setActiveView("rectormemos")}
-        className="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition"
-      >
-        OK
-      </button>
-    </div>
+      {/* OK Button */}
+      <Box mt={4} textAlign="right">
+        <Button
+          variant="contained"
+          color="success"
+          onClick={() => setActiveView("rectormemos")}
+        >
+          OK
+        </Button>
+      </Box>
+    </Paper>
   );
 };
 

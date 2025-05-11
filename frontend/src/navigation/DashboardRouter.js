@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-
+import axios from "axios";
 import CAADepartmentDashboard from "../dashboards/CAA_departmentDashboard";
 import HeadDepartmentDashboard from "../dashboards/HeadDepartmentDashboard";
 import ARFacultyDashboard from "../dashboards/ARFacultyDashboard";
@@ -10,14 +10,44 @@ import ARCampusDashboard from "../dashboards/ARCampusDashboard";
 import RectorDashboard from "../dashboards/RectorDashboard";
 
 const DashboardRouter = () => {
-  const { currentUser, setCurrentUser } = useAuth();
+  const { currentUser, setCurrentUser ,setNotificationCount,setNotifications } = useAuth();
 
   useEffect(() => {
     const role = currentUser;
     if (role) {
       setCurrentUser(role);
     }
-  }, [setCurrentUser]);
+  }, [setCurrentUser,currentUser]);
+
+   useEffect(() => {
+    let intervalId;
+
+    const fetchNotifications = async () => {
+      try {
+        const token = sessionStorage.getItem("token");
+        const res = await axios.get(
+          `http://localhost:5000/api/notifications/role/${currentUser}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setNotifications(res.data);
+  console.log(res.data);
+        setNotificationCount(res.data.length);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    if (currentUser) {
+      fetchNotifications(); // initial fetch
+      intervalId = setInterval(fetchNotifications, 4000); // fetch every 4 sec
+    }
+
+    return () => clearInterval(intervalId); // clean up
+  }, [currentUser, setNotificationCount]);
 
   if (!currentUser) return <p>Loading user...</p>;
 

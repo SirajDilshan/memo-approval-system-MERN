@@ -1,6 +1,15 @@
 import { useAuth } from "../../context/AuthContext";
 import { useEffect, useState } from "react";
 import axios from "axios";
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
+  List,
+  ListItem,
+  ListItemButton
+} from "@mui/material";
 
 const Notifications = () => {
   const {
@@ -8,102 +17,108 @@ const Notifications = () => {
     setViewId,
     setActiveView,
     setMemos,
-    setNotificationCount,
-    deleteNotificationByMemoId,
+    deleteNotificationByMemoId,setShowNotifications,notifications
   } = useAuth();
-  const [notifications, setNotifications] = useState([]);
+const [allMemos, setAllMemos]= useState([]);
 
   useEffect(() => {
     const fetchMemos = async () => {
       try {
         const token = sessionStorage.getItem("token");
-        const response = await axios.get(
-          "http://localhost:5000/api/memos/all",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await axios.get("http://localhost:5000/api/memos/all", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+setAllMemos(response.data);
         setMemos(response.data);
       } catch (error) {
         console.error("Error fetching memos:", error);
-      } finally {
       }
     };
 
     fetchMemos();
-  }, []);
+  }, [setMemos]);
 
-  useEffect(() => {
-    let intervalId;
 
-    const fetchNotifications = async () => {
-      try {
-        const token = sessionStorage.getItem("token");
-        const res = await axios.get(
-          `http://localhost:5000/api/notifications/role/${currentUser}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-        setNotifications(res.data);
-        setNotificationCount(res.data.length);
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-      }
-    };
-
-    if (currentUser) {
-      fetchNotifications(); // initial fetch
-      intervalId = setInterval(fetchNotifications, 4000); // fetch every 5 sec
-    }
-
-    return () => clearInterval(intervalId); // clean up
-  }, [currentUser]);
 
   return (
-    <div className="p-4 space-y-4">
+    < Box>
       {notifications.length === 0 ? (
-        <p className="text-gray-500">No notifications available.</p>
+        <Typography variant="body2" color="textSecondary">
+          No notifications
+        </Typography>
       ) : (
-        <ul className="space-y-3">
-          {notifications.map((note) => (
-            <li
-              key={note._id}
-              className="p-4 bg-white rounded shadow border border-gray-200"
-            >
-              <p>{note.message}</p>
-              <p>{new Date(note.createdAt).toLocaleString()}</p>
+        <List>
+          {notifications.map((note) => {
+  // Find the corresponding memo based on the _id
+  const relatedMemo = allMemos.find((memo) => memo._id === note.memoId);
 
-              <button
-                onClick={() => {
-                  setViewId(note.memoId);
-                  deleteNotificationByMemoId(note.memoId);
-                  if (currentUser === "Head_Department") {
-                    setActiveView("signMemo");
-                  }
-                  if (currentUser === "CAA_Department") {
-                    setActiveView("editMemo");
-                  }
-                  if (currentUser === "AR_Faculty") {
-                    setActiveView("EditMemoFaculty");
-                  }
-                  if (currentUser === "CAA_Faculty") {
-                    setActiveView("caaeditmemo");
-                  }
-                }}
-                className="mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                View Memo
-              </button>
-            </li>
-          ))}
-        </ul>
+  return (
+    <ListItem key={note._id} sx={{ mb: 2 }}>
+  <Card
+    sx={{
+      width: "100%",
+      borderRadius: 2,
+      background: "linear-gradient(135deg, #e3f2fd, #bbdefb)",
+      border: "1px solid #90caf9",
+      boxShadow: 3,
+    }}
+  >
+    <CardContent>
+      {relatedMemo && (
+        <Typography variant="body2" color="textSecondary">
+          {relatedMemo.memo_id}
+        </Typography>
       )}
-    </div>
+      <Typography variant="body1">{note.message}</Typography>
+
+      <Typography variant="body2" color="textSecondary">
+        {new Date(note.createdAt).toLocaleString()}
+      </Typography>
+
+      <ListItemButton
+        onClick={() => {
+          setViewId(note.memoId);
+          deleteNotificationByMemoId(note.memoId);
+          setShowNotifications(false);
+          if (currentUser === "Head_Department") {
+            setActiveView("signMemo");
+          }
+          if (currentUser === "CAA_Department") {
+            setActiveView("editMemo");
+          }
+          if (currentUser === "AR_Faculty") {
+            setActiveView("EditMemoFaculty");
+          }
+          if (currentUser === "CAA_Faculty") {
+            setActiveView("caaeditmemo");
+          }
+        }}
+        sx={{
+          mt: 2,
+          px: 3,
+          py: 1,
+          backgroundColor: "primary.main",
+          color: "white",
+          "&:hover": {
+            backgroundColor: "primary.dark",
+          },
+        }}
+      >
+        View Memo
+      </ListItemButton>
+    </CardContent>
+  </Card>
+</ListItem>
+
+  );
+})}
+
+        </List>
+      )}
+    </ Box>
   );
 };
 

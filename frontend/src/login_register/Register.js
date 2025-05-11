@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { TextField, Button, MenuItem, Select, InputLabel, FormControl, FormHelperText } from "@mui/material";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -63,66 +64,76 @@ const Register = () => {
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <input
-              type="text"
+            <TextField
+              fullWidth
+              label="Full Name"
+              variant="outlined"
               name="name"
-              placeholder="Full Name"
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
             />
           </div>
           <div>
-            <input
+            <TextField
+              fullWidth
+              label="Email"
               type="email"
+              variant="outlined"
               name="email"
-              placeholder="Email"
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
             />
           </div>
           <div>
-            <input
+            <TextField
+              fullWidth
+              label="Password (min 6 characters)"
               type="password"
+              variant="outlined"
               name="password"
-              placeholder="Password (min 6 characters)"
               value={formData.password}
               onChange={handleChange}
-              minLength="6"
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:ring-blue-300"
+              inputProps={{ minLength: 6 }}
             />
           </div>
           <div>
-            <select
-              name="role"
-              value={formData.role}
-              onChange={handleChange}
-              required
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-white focus:outline-none focus:ring focus:ring-blue-300"
-            >
-              <option value="" disabled>
-                Select Role
-              </option>
-              {roles.map((role) => (
-                <option key={role} value={role}>
-                  {role.replace(/_/g, " ")}
-                </option>
-              ))}
-            </select>
+            <FormControl fullWidth>
+              <InputLabel>Select Role</InputLabel>
+              <Select
+                label="Select Role"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                required
+              >
+                <MenuItem value="" disabled>
+                  Select Role
+                </MenuItem>
+                {roles.map((role) => (
+                  <MenuItem key={role} value={role}>
+                    {role.replace(/_/g, " ")}
+                  </MenuItem>
+                ))}
+              </Select>
+              <FormHelperText>Select a role for the user</FormHelperText>
+            </FormControl>
           </div>
-          <button
+          <Button
             type="submit"
+            fullWidth
+            variant="contained"
+            color="success"
             disabled={loading}
-            className={`w-full bg-green-600 text-white font-medium py-2 rounded-lg hover:bg-green-700 transition ${
-              loading ? "opacity-70 cursor-not-allowed" : ""
-            }`}
+            sx={{
+              padding: "10px",
+              marginTop: "16px",
+            }}
           >
             {loading ? "Registering..." : "Register"}
-          </button>
+          </Button>
         </form>
         <p className="mt-4 text-center text-sm text-gray-600">
           Already have an account?{" "}
